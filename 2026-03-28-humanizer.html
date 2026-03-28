@@ -42,6 +42,35 @@
   }
   .meta-bar span { display: flex; align-items: center; gap: 6px; }
   .container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+  .action-bar { display: flex; justify-content: center; gap: 12px; padding: 16px; background: rgba(15,52,96,0.3); }
+  .action-btn {
+    padding: 8px 20px; border-radius: 8px; border: 1px solid var(--accent);
+    background: transparent; color: var(--accent); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block;
+  }
+  .action-btn:hover { background: var(--accent); color: #fff; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--card); border: 1px solid #444; border-radius: 16px;
+    width: 90%; max-width: 900px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px; border-bottom: 1px solid #333;
+  }
+  .modal-header h3 { font-size: 18px; }
+  .modal-close { background: none; border: none; color: var(--text2); font-size: 28px; cursor: pointer; }
+  .modal-close:hover { color: var(--accent); }
+  .modal-body {
+    padding: 24px; overflow-y: auto; font-size: 14px; line-height: 1.8; color: var(--text2);
+    font-family: 'Consolas', 'Monaco', monospace; white-space: pre-wrap; word-break: break-word;
+  }
 
   .section { margin-bottom: 40px; }
   .section-title {
@@ -172,6 +201,11 @@
   <span>📄 含 README.md</span>
   <span>⚡ 即装即用，无需配置</span>
   <span>🏷️ MIT 许可</span>
+</div>
+
+<div class="action-bar">
+  <button class="action-btn" onclick="document.getElementById('sourceModal').classList.add('active')">📄 查看 SKILL.md 原文</button>
+  <a href="https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing" target="_blank" class="action-btn">🔗 Wikipedia 原始来源</a>
 </div>
 
 <div class="container">
@@ -497,16 +531,42 @@
     </a>
   </div>
 
-  <!-- 综合评价 -->
+  <!-- 综合评价 + 辣评 -->
   <div class="section">
-    <div class="verdict-box">
-      <div class="stars">⭐⭐⭐⭐⭐</div>
-      <h3>强烈推荐安装</h3>
-      <p style="color:var(--text2); max-width:500px; margin:0 auto;">
-        零配置、即装即用、不需要技术背景。<br>
-        对所有用 AI 辅助写作的人来说，这是<strong>必备工具</strong>。<br>
-        学习价值极高——即使不安装，24 种模式本身就是一份绝佳的编辑检查表。
-      </p>
+    <div class="section-title">Buddy 辣评 🌶️</div>
+    <div class="verdict-box" style="text-align:left; border-color: var(--accent);">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <h3 style="color:var(--green)">强烈推荐安装</h3>
+      </div>
+
+      <div class="card" style="background:rgba(74,222,128,0.05); border-color:rgba(74,222,128,0.3); margin-bottom:16px;">
+        <h3 style="color:var(--green)">👍 优点</h3>
+        <ul>
+          <li><strong>最"可用"的写作类 Skill，没有之一。</strong>不需要任何配置、不依赖外部API、不需要技术背景。装上就能用，给文本就出结果。</li>
+          <li><strong>知识密度极高。</strong>17KB 的 SKILL.md 相当于一份"AI文本鉴别手册"。24 种模式分类清晰，每个都有 Before/After 示例，比市面上大多数"去AI味"教程都系统。</li>
+          <li><strong>"加灵魂"理念超前。</strong>大多数去AI味工具只做"减法"（去掉坏词），这个还做"加法"——教你怎么让文字有人格。"允许不完美"、"敢用第一人称"这些建议很有洞察。</li>
+          <li><strong>知识来源靠谱。</strong>基于维基百科 WikiProject AI Cleanup 的真实标注数据，不是某个人拍脑袋想的。</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.3); margin-bottom:16px;">
+        <h3 style="color:#ef4444">👎 缺点</h3>
+        <ul>
+          <li><strong>纯英文语境，中文适配为零。</strong>所有示例、关键词、模式都是英文的。AI 中文写作有自己的"味道"（比如"赋能"、"深耕"、"聚焦"、"打造"），但这个 Skill 完全没涉及。对中文内容工作者来说，需要自己做翻译和适配。</li>
+          <li><strong>没有脚本、没有自动化。</strong>它本质上是一份"指导文档"——告诉 AI 怎么改文本，但不像 Content Repurposer 那样有可直接运行的 shell 脚本。一切都靠 AI 理解和执行这份 Prompt。</li>
+          <li><strong>只有 SKILL.md + README.md，没有进阶资源。</strong>对比 FBS-BookWriter（35KB主文件+70+参考文档），Humanizer 的内容体量偏单薄。没有针对不同文体（学术、营销、新闻）的分场景指导。</li>
+          <li><strong>"加灵魂"部分讲得好但做不到。</strong>"有观点"、"敢用第一人称"这些建议很对，但 AI 执行起来未必稳定。Skill 没有给出足够的约束机制来确保输出质量一致。</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background:rgba(251,191,36,0.05); border-color:rgba(251,191,36,0.3);">
+        <h3 style="color:var(--yellow)">💡 谁最该用？</h3>
+        <p style="margin-top:8px;">
+          <strong>英文内容编辑、出海团队、学术写作者</strong>——这个 Skill 立刻能帮你把 AI 初稿打磨成可发布的文字。<br><br>
+          <strong>中文内容工作者</strong>——别急着装，先把 24 种模式当<strong>学习材料</strong>读一遍，理解"为什么这些词/句式=AI味"的底层逻辑，然后自己整理一份中文版的检查清单。这比直接用它更有价值。
+        </p>
+      </div>
     </div>
   </div>
 
@@ -541,12 +601,147 @@ function clearNotes() {
   document.getElementById('notes').value = '';
   localStorage.removeItem('skill-daily-001-notes');
 }
-// Load saved notes
 window.addEventListener('load', () => {
   const saved = localStorage.getItem('skill-daily-001-notes');
   if (saved) document.getElementById('notes').value = saved;
 });
+// Modal close
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('sourceModal').classList.remove('active');
+});
 </script>
+
+<!-- Source Modal -->
+<div class="modal-overlay" id="sourceModal" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>📄 SKILL.md 原文（Humanizer v2.1.1）</h3>
+      <button class="modal-close" onclick="document.getElementById('sourceModal').classList.remove('active')">&times;</button>
+    </div>
+    <div class="modal-body">---
+name: humanizer
+description: "Remove signs of AI-generated writing from text..."
+version: 2.1.1
+allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion
+---
+
+# Humanizer: Remove AI Writing Patterns
+
+You are a writing editor that identifies and removes signs of AI-generated text to make writing sound more natural and human. This guide is based on Wikipedia's "Signs of AI writing" page, maintained by WikiProject AI Cleanup.
+
+## Your Task
+
+When given text to humanize:
+1. Identify AI patterns - Scan for the patterns listed below
+2. Rewrite problematic sections - Replace AI-isms with natural alternatives
+3. Preserve meaning - Keep the core message intact
+4. Maintain voice - Match the intended tone (formal, casual, technical, etc.)
+5. Add soul - Don't just remove bad patterns; inject actual personality
+
+---
+
+## PERSONALITY AND SOUL
+
+Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as obvious as slop. Good writing has a human behind it.
+
+### Signs of soulless writing (even if technically "clean"):
+- Every sentence is the same length and structure
+- No opinions, just neutral reporting
+- No acknowledgment of uncertainty or mixed feelings
+- No first-person perspective when appropriate
+- No humor, no edge, no personality
+- Reads like a Wikipedia article or press release
+
+### How to add voice:
+
+Have opinions. Don't just report facts - react to them.
+Vary your rhythm. Short punchy sentences. Then longer ones that take their time.
+Acknowledge complexity. Real humans have mixed feelings.
+Use "I" when it fits. First person isn't unprofessional - it's honest.
+Let some mess in. Perfect structure feels algorithmic.
+Be specific about feelings. Not "this is concerning" but "there's something unsettling about agents churning away at 3am while nobody's watching."
+
+---
+
+## CONTENT PATTERNS (1-6)
+
+1. Undue Emphasis on Significance, Legacy, and Broader Trends
+   Watch: stands as, testament, pivotal, evolving landscape, indelible mark
+
+2. Undue Emphasis on Notability and Media Coverage
+   Watch: independent coverage, leading expert, active social media presence
+
+3. Superficial Analyses with -ing Endings
+   Watch: highlighting, ensuring, reflecting, symbolizing, fostering, showcasing
+
+4. Promotional and Advertisement-like Language
+   Watch: vibrant, profound, nestled, breathtaking, must-visit, stunning
+
+5. Vague Attributions and Weasel Words
+   Watch: Industry reports, Experts argue, Some critics argue
+
+6. Outline-like "Challenges and Future Prospects" Sections
+   Watch: Despite its..., faces several challenges, Future Outlook
+
+## LANGUAGE AND GRAMMAR PATTERNS (7-12)
+
+7. Overused "AI Vocabulary" Words
+   Additionally, align with, crucial, delve, emphasizing, enduring, enhance,
+   fostering, garner, highlight, interplay, intricate, landscape, pivotal,
+   showcase, tapestry, testament, underscore, vibrant
+
+8. Avoidance of "is"/"are" (Copula Avoidance)
+   "serves as" instead of "is"
+
+9. Negative Parallelisms
+   "Not only...but..." / "It's not just...it's..."
+
+10. Rule of Three Overuse
+
+11. Elegant Variation (Synonym Cycling)
+
+12. False Ranges ("from X to Y" where X and Y aren't on a meaningful scale)
+
+## STYLE PATTERNS (13-18)
+
+13. Em Dash Overuse
+14. Overuse of Boldface
+15. Inline-Header Vertical Lists
+16. Title Case in Headings
+17. Emojis as decoration
+18. Curly Quotation Marks
+
+## COMMUNICATION PATTERNS (19-21)
+
+19. Collaborative Communication Artifacts ("I hope this helps!")
+20. Knowledge-Cutoff Disclaimers ("as of my last training update")
+21. Sycophantic/Servile Tone ("Great question!")
+
+## FILLER AND HEDGING (22-24)
+
+22. Filler Phrases ("In order to" → "To")
+23. Excessive Hedging
+24. Generic Positive Conclusions ("The future looks bright")
+
+---
+
+## Process
+
+1. Read the input text carefully
+2. Identify all instances of the patterns above
+3. Rewrite each problematic section
+4. Ensure the revised text sounds natural, varies structure, uses specifics
+5. Present the humanized version
+
+## Reference
+
+Based on Wikipedia:Signs_of_AI_writing, maintained by WikiProject AI Cleanup.
+Key insight: "LLMs use statistical algorithms to guess what should come next.
+The result tends toward the most statistically likely result that applies
+to the widest variety of cases."
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
