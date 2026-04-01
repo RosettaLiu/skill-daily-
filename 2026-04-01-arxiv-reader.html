@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill 日报 #005 — ArXiv Reader 论文深读 Agent</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --card: #1a1a2e;
+    --card2: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --text: #e0e0e0;
+    --text2: #a0a0a0;
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 60px 24px 40px;
+    text-align: center;
+    border-bottom: 3px solid var(--accent);
+  }
+  .hero .issue { color: var(--accent); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 8px; }
+  .hero .subtitle { color: var(--text2); font-size: 18px; margin-bottom: 20px; }
+  .hero .tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .hero .tag { background: rgba(233,69,96,0.2); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+  .meta-bar {
+    display: flex; justify-content: center; gap: 32px; padding: 16px; background: var(--card);
+    font-size: 14px; color: var(--text2); border-bottom: 1px solid #333; flex-wrap: wrap;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+  .action-bar { display: flex; justify-content: center; gap: 12px; padding: 16px; background: rgba(15,52,96,0.3); flex-wrap: wrap; }
+  .action-btn {
+    padding: 8px 20px; border-radius: 8px; border: 1px solid var(--accent);
+    background: transparent; color: var(--accent); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block;
+  }
+  .action-btn:hover { background: var(--accent); color: #fff; }
+
+  .modal-overlay {
+    display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--card); border: 1px solid #444; border-radius: 16px;
+    width: 90%; max-width: 900px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px; border-bottom: 1px solid #333;
+  }
+  .modal-header h3 { font-size: 18px; }
+  .modal-close { background: none; border: none; color: var(--text2); font-size: 28px; cursor: pointer; }
+  .modal-close:hover { color: var(--accent); }
+  .modal-body {
+    padding: 24px; overflow-y: auto; font-size: 14px; line-height: 1.8; color: var(--text2);
+    font-family: 'Consolas', 'Monaco', monospace; white-space: pre-wrap; word-break: break-word;
+  }
+
+  .section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 22px; font-weight: 700; margin-bottom: 16px;
+    padding-left: 16px; border-left: 4px solid var(--accent);
+  }
+
+  .card {
+    background: var(--card); border-radius: 12px; padding: 24px; margin-bottom: 16px;
+    border: 1px solid #2a2a4a;
+  }
+  .card h3 { color: var(--accent); font-size: 18px; margin-bottom: 12px; }
+  .card p, .card li { color: var(--text2); font-size: 15px; line-height: 1.8; }
+  .card ul { padding-left: 20px; }
+  .card li { margin-bottom: 6px; }
+
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(233,69,96,0.1), rgba(15,52,96,0.2));
+    border: 1px solid var(--accent);
+    border-radius: 12px; padding: 24px; margin-bottom: 16px;
+  }
+  .highlight-box h3 { color: #fff; }
+
+  /* Data Panel */
+  .data-panel {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;
+  }
+  @media (max-width: 600px) { .data-panel { grid-template-columns: repeat(2, 1fr); } }
+  .data-item {
+    background: var(--card); border: 1px solid #2a2a4a; border-radius: 12px;
+    padding: 16px; text-align: center;
+  }
+  .data-num { font-size: 28px; font-weight: 800; color: var(--accent); }
+  .data-label { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* Architecture diagram */
+  .arch-flow {
+    display: flex; flex-direction: column; gap: 0; align-items: center; margin: 20px 0;
+  }
+  .arch-node {
+    background: var(--card2); border: 2px solid var(--blue); border-radius: 12px;
+    padding: 16px 24px; text-align: center; min-width: 280px;
+  }
+  .arch-node.classifier { border-color: var(--yellow); }
+  .arch-node.reader { border-color: var(--green); }
+  .arch-node.summary { border-color: var(--purple); }
+  .arch-node h4 { font-size: 16px; margin-bottom: 4px; }
+  .arch-node p { font-size: 13px; color: var(--text2); }
+  .arch-arrow { color: var(--text2); font-size: 24px; margin: 4px 0; }
+
+  .pattern-list { counter-reset: pattern; }
+  .pattern-item {
+    background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 12px;
+    border: 1px solid #2a2a4a; cursor: pointer; transition: all 0.2s;
+  }
+  .pattern-item:hover { border-color: var(--accent); }
+  .pattern-header { display: flex; align-items: center; gap: 12px; }
+  .pattern-num {
+    background: var(--accent); color: #fff; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .pattern-name { font-size: 16px; font-weight: 600; flex: 1; }
+  .pattern-toggle { color: var(--text2); font-size: 20px; transition: transform 0.2s; }
+  .pattern-body { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #333; }
+  .pattern-item.open .pattern-body { display: block; }
+  .pattern-item.open .pattern-toggle { transform: rotate(180deg); }
+
+  .code-block {
+    background: #0d0d0d; border: 1px solid #333; border-radius: 8px;
+    padding: 16px; font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px; line-height: 1.6; overflow-x: auto; color: var(--text2);
+    margin: 12px 0;
+  }
+  .code-block .kw { color: var(--accent); }
+  .code-block .fn { color: var(--blue); }
+  .code-block .str { color: var(--green); }
+  .code-block .cm { color: #666; }
+
+  .flow-steps { display: flex; flex-direction: column; gap: 0; }
+  .flow-step { display: flex; gap: 16px; padding: 16px 0; }
+  .flow-dot {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; flex-shrink: 0;
+    background: var(--accent2); color: var(--blue); border: 2px solid var(--blue);
+  }
+  .flow-content h4 { font-size: 16px; margin-bottom: 4px; }
+  .flow-content p { font-size: 14px; color: var(--text2); }
+  .flow-arrow { text-align: center; color: var(--text2); font-size: 20px; margin: -8px 0; padding-left: 10px; }
+
+  .category-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 16px 0;
+  }
+  @media (max-width: 600px) { .category-grid { grid-template-columns: 1fr; } }
+  .cat-card {
+    background: var(--card2); border: 1px solid #2a2a4a; border-radius: 10px;
+    padding: 14px; transition: border-color 0.2s;
+  }
+  .cat-card:hover { border-color: var(--blue); }
+  .cat-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .cat-card p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .cat-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+  .cat-agent { background: rgba(96,165,250,0.2); color: var(--blue); }
+  .cat-train { background: rgba(233,69,96,0.2); color: var(--accent); }
+  .cat-rag { background: rgba(74,222,128,0.2); color: var(--green); }
+  .cat-multi { background: rgba(167,139,250,0.2); color: var(--purple); }
+  .cat-infer { background: rgba(251,191,36,0.2); color: var(--yellow); }
+  .cat-bench { background: rgba(244,114,182,0.2); color: #f472b6; }
+  .cat-report { background: rgba(45,212,191,0.2); color: #2dd4bf; }
+  .cat-gen { background: rgba(160,160,160,0.2); color: var(--text2); }
+
+  .ref-link {
+    display: block; background: var(--card2); border-radius: 8px; padding: 14px 18px;
+    margin-bottom: 8px; text-decoration: none; color: var(--text);
+    border: 1px solid #2a2a4a; transition: all 0.2s;
+  }
+  .ref-link:hover { border-color: var(--blue); }
+  .ref-link .ref-title { font-weight: 600; }
+  .ref-link .ref-desc { font-size: 13px; color: var(--text2); }
+
+  .verdict-box {
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    border: 2px solid var(--accent); border-radius: 16px; padding: 32px; text-align: center;
+  }
+  .stars { font-size: 28px; margin-bottom: 12px; }
+
+  .interact-section { margin-top: 40px; padding: 32px; background: var(--card); border-radius: 16px; border: 1px solid #2a2a4a; }
+  .interact-section h3 { color: var(--accent); margin-bottom: 16px; }
+  .interact-section textarea {
+    width: 100%; height: 100px; background: #0f0f0f; color: var(--text);
+    border: 1px solid #444; border-radius: 8px; padding: 12px; font-size: 14px;
+    resize: vertical; font-family: inherit;
+  }
+  .interact-section textarea:focus { outline: none; border-color: var(--accent); }
+  .btn-row { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 24px; border-radius: 8px; border: none; font-size: 14px;
+    cursor: pointer; font-weight: 600; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #d63851; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid #555; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .footer { text-align: center; padding: 40px 16px; color: var(--text2); font-size: 13px; border-top: 1px solid #222; margin-top: 40px; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .badge-hard { background: rgba(233,69,96,0.2); color: var(--accent); }
+  .badge-ai { background: rgba(96,165,250,0.2); color: var(--blue); }
+  .badge-research { background: rgba(167,139,250,0.2); color: var(--purple); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="issue">SKILL 日报 &middot; 第 005 期 &middot; 2026.04.01</div>
+  <h1>📚 ArXiv Reader</h1>
+  <div class="subtitle">LLM 驱动的论文分类与深度阅读 Agent 系统</div>
+  <div class="tags">
+    <span class="tag">AI 工具</span>
+    <span class="tag">学术研究</span>
+    <span class="tag">多 Agent 协作</span>
+    <span class="tag">LangChain</span>
+    <span class="tag">v1.0.3</span>
+  </div>
+</div>
+
+<div class="meta-bar">
+  <span>📦 41 个文件</span>
+  <span>🐍 Python + LangChain</span>
+  <span>🤖 3 个 Agent 角色</span>
+  <span>📂 8 个学科分类</span>
+  <span>⚙️ 需配置 LLM API</span>
+</div>
+
+<div class="action-bar">
+  <button class="action-btn" onclick="document.getElementById('sourceModal').classList.add('active')">📄 查看 SKILL.md 原文</button>
+  <a href="https://arxiv.org/" target="_blank" class="action-btn">🔗 ArXiv 官网</a>
+  <a href="https://python.langchain.com/" target="_blank" class="action-btn">🦜 LangChain 文档</a>
+</div>
+
+<div class="container">
+
+  <!-- 一句话概述 -->
+  <div class="section">
+    <div class="section-title">这个 Skill 是什么？</div>
+    <div class="highlight-box">
+      <h3>一句话：给一个 arXiv 论文 ID，自动分类 + 多轮深度阅读 + 生成结构化中文笔记。</h3>
+      <p style="margin-top:12px; color:var(--text2)">
+        这不是简单的"翻译摘要"工具。它是一个<strong>三 Agent 协作系统</strong>：Classifier 先判断论文属于哪个研究领域，Reader 用 <strong>Two-Pass（甚至三轮）深度阅读</strong>逐章分析 LaTeX 源码，Summary Agent 兜底处理未分类论文。8 个预设学科方向各有专属阅读指南，输出 Obsidian 友好的 Markdown 笔记。
+      </p>
+    </div>
+  </div>
+
+  <!-- 数据面板 -->
+  <div class="section">
+    <div class="section-title">数据面板</div>
+    <div class="data-panel">
+      <div class="data-item">
+        <div class="data-num">3</div>
+        <div class="data-label">Agent 角色</div>
+      </div>
+      <div class="data-item">
+        <div class="data-num">8</div>
+        <div class="data-label">学科分类</div>
+      </div>
+      <div class="data-item">
+        <div class="data-num">6</div>
+        <div class="data-label">Prompt 模板</div>
+      </div>
+      <div class="data-item">
+        <div class="data-num">41</div>
+        <div class="data-label">源码文件</div>
+      </div>
+    </div>
+    <div class="data-panel">
+      <div class="data-item">
+        <div class="data-num">2-3</div>
+        <div class="data-label">阅读轮次</div>
+      </div>
+      <div class="data-item">
+        <div class="data-num">16K</div>
+        <div class="data-label">Max Tokens/轮</div>
+      </div>
+      <div class="data-item">
+        <div class="data-num">50K</div>
+        <div class="data-label">主体文本截断</div>
+      </div>
+      <div class="data-item">
+        <div class="data-num">2</div>
+        <div class="data-label">论文获取策略</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 核心理念 -->
+  <div class="section">
+    <div class="section-title">核心理念：像研究员一样读论文，而不是像翻译机</div>
+    <div class="card">
+      <h3>为什么需要多轮阅读？</h3>
+      <p>人类研究员读论文不是一遍过的。先看摘要和引言判断方向，再深入方法和实验细节，最后看附录补充。这个 Skill 完全模拟了这个过程：</p>
+      <ul style="margin-top:12px">
+        <li><strong>Pass 1 — 宏观框架</strong>：读 Abstract + Introduction + Preliminaries + Contributions + Limitations，抓住论文核心，提出待深入的问题</li>
+        <li><strong>Pass 2 — 方法细节</strong>：基于第一轮总结，读方法、实验、分析等主体内容，提取公式和关键结果，并决定是否需要读附录</li>
+        <li><strong>Pass 3（可选）— 附录补充</strong>：只在 Reader Agent 明确输出 <code>APPENDIX_NEEDED: YES</code> 时触发，只输出增量信息</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>领域专属阅读，不是通用总结</h3>
+      <p>每个学科分类都有独立的 <code>reading_prompt.md</code>，告诉 Reader 该关注什么。比如：</p>
+      <ul style="margin-top:12px">
+        <li><strong>Agent Systems</strong> — 必须记录架构设计、工具使用方式、记忆管理、多Agent协作</li>
+        <li><strong>LLM Training</strong> — 必须记录损失函数公式、优化器配置、数据来源和规模</li>
+        <li><strong>Inference Accelerate</strong> — 必须记录加速比、延迟、显存占用、硬件环境</li>
+        <li><strong>Technique Report</strong> — 98 行阅读指南，从预训练到RLHF到安全对齐全链路覆盖</li>
+      </ul>
+      <p style="margin-top:12px; color:var(--yellow);">这意味着同一篇论文被分到不同分类，会得到完全不同视角的阅读笔记。</p>
+    </div>
+  </div>
+
+  <!-- 系统架构 -->
+  <div class="section">
+    <div class="section-title">系统架构：三个 Agent 各司其职</div>
+    <div class="arch-flow">
+      <div class="arch-node" style="border-color: var(--accent);">
+        <h4>📥 ArXiv Fetcher</h4>
+        <p>RSS + API 双策略获取论文 / LaTeX 源码下载</p>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-node classifier">
+        <h4>🏷️ Classifier Agent</h4>
+        <p>根据标题+摘要分类到 8 个领域之一</p>
+        <p style="color:var(--yellow); font-size:12px; margin-top:4px;">置信度 &lt; 0.4 → 降级为 general</p>
+      </div>
+      <div class="arch-arrow">↓ 分类结果</div>
+      <div style="display:flex; gap:16px; width:100%; justify-content:center; flex-wrap:wrap;">
+        <div class="arch-node reader" style="flex:1; min-width:200px;">
+          <h4>📖 Reader Agent</h4>
+          <p>Two-Pass 深度阅读<br>（专业分类命中时）</p>
+        </div>
+        <div class="arch-node summary" style="flex:1; min-width:200px;">
+          <h4>📝 Summary Agent</h4>
+          <p>快速摘要总结<br>（归入 general 时）</p>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-node" style="border-color: var(--green);">
+        <h4>📄 Obsidian Markdown 笔记</h4>
+        <p>YAML Front-matter + 结构化阅读笔记</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 八大学科分类 -->
+  <div class="section">
+    <div class="section-title">八大学科分类体系</div>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">每个分类都配有独立的 _metadata.md（分类描述）和 reading_prompt.md（阅读指南）</p>
+    <div class="category-grid">
+      <div class="cat-card">
+        <span class="cat-badge cat-agent">Agent</span>
+        <h4>🤖 Agent Systems</h4>
+        <p>AI Agent 架构、工具使用、记忆系统、多Agent协作、具身智能</p>
+      </div>
+      <div class="cat-card">
+        <span class="cat-badge cat-train">Training</span>
+        <h4>🧠 LLM Training &amp; Alignment</h4>
+        <p>预训练、SFT、RLHF/DPO、数据工程、LoRA、长上下文</p>
+      </div>
+      <div class="cat-card">
+        <span class="cat-badge cat-rag">RAG</span>
+        <h4>🔍 RAG &amp; Retrieval</h4>
+        <p>检索增强生成、向量检索、知识库、分块策略、混合检索</p>
+      </div>
+      <div class="cat-card">
+        <span class="cat-badge cat-multi">Multi</span>
+        <h4>👁️ Multimodal Learning</h4>
+        <p>视觉-语言模型、文生图、视频理解、跨模态对齐</p>
+      </div>
+      <div class="cat-card">
+        <span class="cat-badge cat-infer">Infer</span>
+        <h4>⚡ Inference Accelerate</h4>
+        <p>量化、剪枝、投机采样、KV Cache、FlashAttention、部署优化</p>
+      </div>
+      <div class="cat-card">
+        <span class="cat-badge cat-bench">Bench</span>
+        <h4>📊 Benchmark</h4>
+        <p>评测基准、数据集、评测环境与框架、能力分析</p>
+      </div>
+      <div class="cat-card">
+        <span class="cat-badge cat-report">Report</span>
+        <h4>📋 Technique Report</h4>
+        <p>大厂技术报告、完整训练流程、Scaling Laws、工程实践</p>
+      </div>
+      <div class="cat-card">
+        <span class="cat-badge cat-gen">General</span>
+        <h4>📦 General（兜底）</h4>
+        <p>不匹配任何专业分类时的快速摘要，仅基于摘要生成</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 关键功能模块（可折叠） -->
+  <div class="section">
+    <div class="section-title">关键功能模块（可折叠展开）</div>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">点击展开每个模块的详细说明 👇</p>
+
+    <div class="pattern-list">
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">1</div>
+          <div class="pattern-name">ArXiv Fetcher — 双策略论文获取</div>
+          <div class="pattern-toggle">&#9660;</div>
+        </div>
+        <div class="pattern-body">
+          <p>支持两种获取方式，有优雅的降级策略：</p>
+          <ul>
+            <li><strong>RSS 订阅</strong>（优先）— 快速获取当日新论文，按分类订阅 arXiv RSS 频道</li>
+            <li><strong>arXiv API</strong>（降级）— RSS 无结果时调用官方 API，支持按日期和已知ID过滤</li>
+          </ul>
+          <p style="margin-top:12px"><strong>LaTeX 源码获取</strong>也有双保险：先尝试 <code>arxiv_to_prompt</code> 库（保留结构化信息），失败则直接下载 e-print tar/gz 包并自动查找 <code>\begin{document}</code> 所在的主 .tex 文件。</p>
+          <div class="code-block"><span class="cm"># 单篇论文模式</span>
+<span class="fn">uv run python</span> main.py --arxiv-id <span class="str">2401.12345</span>
+<span class="fn">uv run python</span> main.py --arxiv-id <span class="str">https://arxiv.org/abs/2401.12345</span>
+
+<span class="cm"># 指定分类阅读</span>
+<span class="fn">uv run python</span> main.py --arxiv-id xxxx --category <span class="str">rag_and_retrieval</span>
+
+<span class="cm"># 查看所有可用分类</span>
+<span class="fn">uv run python</span> main.py --list</div>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">2</div>
+          <div class="pattern-name">Classifier Agent — 智能论文分类</div>
+          <div class="pattern-toggle">&#9660;</div>
+        </div>
+        <div class="pattern-body">
+          <p>基于论文标题和摘要，输出 JSON 格式的分类结果：</p>
+          <div class="code-block">{
+  <span class="str">"category"</span>: <span class="str">"rag_and_retrieval"</span>,
+  <span class="str">"confidence"</span>: <span class="kw">0.87</span>,
+  <span class="str">"reasoning"</span>: <span class="str">"论文提出了新型检索增强生成架构..."</span>
+}</div>
+          <p style="margin-top:12px"><strong>设计亮点</strong>：</p>
+          <ul>
+            <li>温度设为 <code>0.1</code>，追求分类稳定性</li>
+            <li>置信度低于 0.4 自动降级为 general，宁可漏分不错分</li>
+            <li>Robust JSON 解析：先尝试直接 parse，失败后正则提取 <code>{...}</code>，再失败返回 general</li>
+            <li>分类描述从 <code>_metadata.md</code> 动态拼装，新增分类零代码</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">3</div>
+          <div class="pattern-name">Reader Agent — 多轮深度阅读核心</div>
+          <div class="pattern-toggle">&#9660;</div>
+        </div>
+        <div class="pattern-body">
+          <p>这是整个系统最有料的部分。三轮阅读流水线：</p>
+          <ul>
+            <li><strong>Pass 1（宏观框架）</strong>— 输入 Abstract + Introduction + Preliminaries 等（截断30K字符），输出初步总结和待深入问题</li>
+            <li><strong>Pass 2（方法细节）</strong>— 输入第一轮总结 + 论文主体内容（截断50K字符），输出完整笔记并决定是否读附录</li>
+            <li><strong>Pass 3（附录补充）</strong>— 仅在检测到 <code>APPENDIX_NEEDED: YES</code> 时触发，只输出增量信息</li>
+          </ul>
+          <p style="margin-top:12px; color:var(--yellow);">设计精巧之处：Pass 2 不是简单继续读，而是拿着 Pass 1 的问题去找答案，同时生成全新的完整笔记。附录判断也不靠规则——让 LLM 自己决定要不要继续读。</p>
+          <div class="code-block"><span class="cm"># reader_agent.py 关键逻辑</span>
+<span class="kw">def</span> <span class="fn">read_paper</span>(self, paper_info, parsed_paper):
+    <span class="cm"># Pass 1: 宏观框架</span>
+    initial_summary = self.chain.invoke(first_pass_msg)
+
+    <span class="cm"># Pass 2: 方法细节</span>
+    detailed_notes = self.chain.invoke(second_pass_msg)
+
+    <span class="cm"># Pass 3: 附录（可选）</span>
+    <span class="kw">if</span> self._should_read_appendix(detailed_notes) \
+       <span class="kw">and</span> parsed_paper.has_appendix:
+        appendix_notes = self.chain.invoke(appendix_msg)
+        detailed_notes += appendix_notes</div>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">4</div>
+          <div class="pattern-name">LaTeX Parser — 论文结构化解析</div>
+          <div class="pattern-toggle">&#9660;</div>
+        </div>
+        <div class="pattern-body">
+          <p>不是简单的文本提取，而是理解论文结构：</p>
+          <ul>
+            <li>提取 <code>\begin{abstract}...\end{abstract}</code></li>
+            <li>识别 <code>\section{}</code>、<code>\subsection{}</code>、<code>\subsubsection{}</code> 三级标题</li>
+            <li>定位 <code>\appendix</code> 标记，区分正文和附录</li>
+            <li>识别参考文献边界（<code>\bibliography</code> / <code>\printbibliography</code>），自动排除</li>
+          </ul>
+          <p style="margin-top:12px"><strong>关键设计</strong>：<code>ParsedPaper</code> dataclass 提供了 <code>first_pass_text</code>、<code>main_body_text</code>、<code>appendix_text</code> 三个属性，用关键词（introduction, background, contribution 等）自动将章节分配到对应阅读轮次。</p>
+          <p style="margin-top:8px; color:var(--green);">轻量清理策略也很聪明：只移除 <code>\label{}</code>、<code>\vspace{}</code> 等噪音元素，保留大部分 LaTeX 命令——因为"LLM 读 LaTeX 没问题"。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">5</div>
+          <div class="pattern-name">Skill Loader — 零代码扩展分类</div>
+          <div class="pattern-toggle">&#9660;</div>
+        </div>
+        <div class="pattern-body">
+          <p>插件式分类架构，添加新学科只需要两个文件：</p>
+          <div class="code-block">skills/your_new_category/
+  ├── _metadata.md      <span class="cm"># 分类描述（给 Classifier 用）</span>
+  └── reading_prompt.md  <span class="cm"># 阅读指南（给 Reader 用）</span></div>
+          <p style="margin-top:12px">Loader 自动扫描 <code>skills/</code> 目录下的所有子文件夹（跳过 <code>_</code> 开头），读取 metadata 和 reading_prompt。无需修改任何 Python 代码，重启即可识别。</p>
+          <p style="margin-top:8px; color:var(--yellow);">这意味着你可以自定义任何研究领域——量子计算、生物信息、材料科学——只要能写出领域阅读指南，Agent 就能按你的要求去深读论文。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">6</div>
+          <div class="pattern-name">Prompt 工程 — 六套精心设计的模板</div>
+          <div class="pattern-toggle">&#9660;</div>
+        </div>
+        <div class="pattern-body">
+          <p>6 个独立的 Prompt 文件，各有分工：</p>
+          <ul>
+            <li><strong>classifier_system.md</strong> — 分类专家身份，输出 JSON，含格式约束和置信度要求</li>
+            <li><strong>reader_system.md</strong> — "资深 AI 研究员"身份，注入领域 reading_prompt，要求中文输出、保留 LaTeX 公式</li>
+            <li><strong>reader_first_pass_user.md</strong> — 第一轮阅读指令：高屋建瓴，允许提出问题留给下一轮</li>
+            <li><strong>reader_second_pass_user.md</strong> — 第二轮阅读指令：深入分析 + 整合第一轮 + 附录决策</li>
+            <li><strong>reader_appendix_pass_user.md</strong> — 附录指令：只输出增量信息，有"附录无重要补充内容"的退出机制</li>
+            <li><strong>summary_system.md</strong> — 快速总结身份，给 general 分类兜底</li>
+          </ul>
+          <p style="margin-top:12px; color:var(--green);">最妙的设计是 reader_first_pass 里的"你可以提出问题，交给后面的 agent 来解决"——这让第二轮阅读有了明确的目标驱动，不是漫无目的地重复读。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">7</div>
+          <div class="pattern-name">LLM 配置与缓存系统</div>
+          <div class="pattern-toggle">&#9660;</div>
+        </div>
+        <div class="pattern-body">
+          <p>基于 LangChain 的 <code>ChatOpenAI</code>，支持 OpenAI 兼容 API（包括 DeepSeek 等）：</p>
+          <ul>
+            <li><code>.env</code> 文件配置 API 密钥、Base URL、模型名、温度、Max Tokens</li>
+            <li>LLM 实例缓存：相同参数配置只创建一次，避免重复初始化</li>
+            <li>不同 Agent 使用不同参数：Classifier 温度 0.1（稳定），Reader 温度 0.3 + 16K tokens（详细），Summary 温度 0.2 + 4K tokens（简洁）</li>
+          </ul>
+          <div class="code-block"><span class="cm"># .env 配置</span>
+LLM_API_KEY=sk-xxxxx
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_MODEL=gpt-4o
+LLM_TEMPERATURE=0.3
+LLM_MAX_TOKENS=16000</div>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">8</div>
+          <div class="pattern-name">输出格式 — Obsidian 友好的 Markdown</div>
+          <div class="pattern-toggle">&#9660;</div>
+        </div>
+        <div class="pattern-body">
+          <p>生成的笔记带 YAML Front-matter，可直接导入 Obsidian 知识库：</p>
+          <div class="code-block">---
+title: <span class="str">"Attention Is All You Need"</span>
+arxiv_id: <span class="str">"1706.03762"</span>
+authors: <span class="str">"Vaswani, Shazeer, Parmar..."</span>
+categories: <span class="str">"cs.CL, cs.AI"</span>
+date_read: <span class="str">"2026-04-01"</span>
+skill_category: <span class="str">"llm_training"</span>
+pdf_url: <span class="str">"https://arxiv.org/pdf/1706.03762"</span>
+---
+
+# Attention Is All You Need
+
+&gt; **ArXiv**: [1706.03762](...) | **Authors**: Vaswani, Shazeer...
+
+<span class="cm">[结构化阅读笔记内容]</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 工作流程 -->
+  <div class="section">
+    <div class="section-title">完整工作流程</div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-dot">1</div>
+        <div class="flow-content">
+          <h4>输入 arXiv ID 或 URL</h4>
+          <p>支持 ID（2401.12345）、abs URL、pdf URL 三种格式</p>
+        </div>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-step">
+        <div class="flow-dot">2</div>
+        <div class="flow-content">
+          <h4>Fetcher 获取元数据 + LaTeX 源码</h4>
+          <p>调用 arXiv API 获取标题/摘要/作者，然后下载论文 LaTeX 源码</p>
+        </div>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-step">
+        <div class="flow-dot">3</div>
+        <div class="flow-content">
+          <h4>LaTeX Parser 结构化解析</h4>
+          <p>提取 Abstract、各级 Section、Appendix，分配到不同阅读轮次</p>
+        </div>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-step">
+        <div class="flow-dot">4</div>
+        <div class="flow-content">
+          <h4>Classifier 自动分类</h4>
+          <p>根据标题+摘要判断学科方向，加载对应 reading_prompt</p>
+        </div>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-step">
+        <div class="flow-dot">5</div>
+        <div class="flow-content">
+          <h4>Reader 多轮深度阅读</h4>
+          <p>Pass 1 宏观框架 &rarr; Pass 2 方法细节 &rarr; Pass 3 附录补充（可选）</p>
+        </div>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-step">
+        <div class="flow-dot">6</div>
+        <div class="flow-content">
+          <h4>输出 Obsidian Markdown 笔记</h4>
+          <p>带 YAML front-matter 的结构化中文阅读笔记，可直接存入知识库</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 参考资料 -->
+  <div class="section">
+    <div class="section-title">参考资料与技术栈</div>
+    <a href="https://arxiv.org/" target="_blank" class="ref-link">
+      <div class="ref-title">📚 arXiv.org</div>
+      <div class="ref-desc">全球最大的开放获取学术预印本平台，本 Skill 的数据来源</div>
+    </a>
+    <a href="https://python.langchain.com/" target="_blank" class="ref-link">
+      <div class="ref-title">🦜 LangChain 1.x</div>
+      <div class="ref-desc">Agent 框架，基于 LangGraph 构建 Classifier/Reader/Summary 三个 Agent</div>
+    </a>
+    <a href="https://pypi.org/project/arxiv/" target="_blank" class="ref-link">
+      <div class="ref-title">📦 arxiv Python 库 (v2.1+)</div>
+      <div class="ref-desc">arXiv 官方 Python 客户端，用于论文搜索和元数据获取</div>
+    </a>
+    <a href="https://github.com/FareedKhan-dev/arxiv-to-prompt" target="_blank" class="ref-link">
+      <div class="ref-title">🔧 arxiv-to-prompt</div>
+      <div class="ref-desc">将 arXiv 论文 LaTeX 源码转换为 LLM 可读文本的工具</div>
+    </a>
+    <a href="https://obsidian.md/" target="_blank" class="ref-link">
+      <div class="ref-title">📝 Obsidian</div>
+      <div class="ref-desc">生成的笔记格式与 Obsidian 完全兼容，带 YAML Front-matter</div>
+    </a>
+  </div>
+
+  <!-- 辣评 -->
+  <div class="section">
+    <div class="section-title">Buddy 辣评 🌶️</div>
+    <div class="verdict-box" style="text-align:left;">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div class="stars">⭐⭐⭐⭐</div>
+        <h3 style="color:var(--green)">架构教科书级，但入门门槛不低</h3>
+      </div>
+
+      <div class="card" style="background:rgba(74,222,128,0.05); border-color:rgba(74,222,128,0.3); margin-bottom:16px;">
+        <h3 style="color:var(--green)">👍 优点</h3>
+        <ul>
+          <li><strong>多轮阅读设计是真正的差异化。</strong>市面上 90% 的"论文阅读工具"就是把 Abstract 翻译成中文。这个 Skill 让 LLM 模拟研究员的阅读习惯——先扫全局、再挖细节、可选读附录。Pass 1 提问 + Pass 2 回答的接力设计非常精巧。</li>
+          <li><strong>领域专属阅读指南是杀手级特性。</strong>LLM Training 的阅读指南要求记录损失函数公式和优化器配置，Inference Accelerate 要求记录加速比和硬件环境——这不是通用 prompt 能做到的深度。Technique Report 的 98 行阅读指南简直是"如何读技术报告"的教学范本。</li>
+          <li><strong>插件式扩展架构。</strong>添加新学科分类不需要动一行 Python 代码，只写两个 Markdown 文件。这是正确的架构设计——把领域知识和代码逻辑完全解耦。</li>
+          <li><strong>LaTeX 解析策略务实。</strong>不做"完美解析"，只做"够用的结构化"。保留大部分 LaTeX 命令让 LLM 自己理解，而不是试图转成纯文本。这个判断很对——LLM 确实能读懂 LaTeX。</li>
+          <li><strong>工程化程度高。</strong>LLM 缓存、优雅降级（RSS→API、LaTeX→摘要）、Robust JSON 解析——处处都有工程师的思考。</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.3); margin-bottom:16px;">
+        <h3 style="color:#ef4444">👎 缺点</h3>
+        <ul>
+          <li><strong>门槛高，小白劝退。</strong>需要 Python、uv、LLM API Key、理解 .env 配置、了解 arXiv ID 格式——这不是"装上就能用"的工具。对非技术用户来说，光是搞定 LangChain 依赖就够头疼了。</li>
+          <li><strong>Token 消耗恐怖。</strong>一篇论文 3 轮阅读，每轮 16K tokens 输出 + 30-50K 输入，总消耗可能到 100K+ tokens。按 GPT-4o 价格算，读一篇论文可能要 0.5-1 美元。如果批量处理，钱包会哭。</li>
+          <li><strong>没有持久化存储。</strong>笔记生成后直接 print 到 stdout，没有数据库、没有文件输出、没有搜索功能。要自己想办法把输出存到 Obsidian 里。作为一个"论文阅读系统"，少了最关键的知识管理环节。</li>
+          <li><strong>分类器是硬伤。</strong>只有 8 个分类，覆盖面有限。搞 NLP 的论文可能被分到 general（因为没有 NLP 分类），然后只能用摘要做快速总结——浪费了深度阅读的能力。</li>
+          <li><strong>RSS 获取策略在单篇模式下无用。</strong><code>fetch_papers()</code> 方法支持批量获取，但 <code>main.py</code> 只暴露了单篇接口。批量处理的基础设施建好了，但入口没开放。</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background:rgba(251,191,36,0.05); border-color:rgba(251,191,36,0.3);">
+        <h3 style="color:var(--yellow)">💡 谁最该用？</h3>
+        <p style="margin-top:8px;">
+          <span class="badge badge-research">强烈推荐</span> <strong>AI 领域研究生和研究员</strong> — 你已经有读论文的习惯，这个工具能帮你把每篇论文的阅读笔记标准化和结构化。8 个预设分类恰好覆盖 AI 核心方向。<br><br>
+          <span class="badge badge-ai">推荐</span> <strong>技术负责人 / 算法工程师</strong> — 用来快速扫描新论文，判断哪些值得精读。Classifier 的分类结果本身就有筛选价值。<br><br>
+          <span class="badge badge-hard">谨慎</span> <strong>非 AI 领域研究者</strong> — 你需要自己写 _metadata.md 和 reading_prompt.md 来适配你的学科。框架支持，但开箱即用仅限 AI。<br><br>
+          <strong>底线建议</strong>：就算不跑代码，这个 Skill 的 8 套 <code>reading_prompt.md</code> 单独拿出来就是极好的"如何读论文"教程。特别是 LLM Training 和 Technique Report 的阅读指南，值得每个做 AI 的人收藏。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 互动区 -->
+  <div class="interact-section">
+    <h3>📝 学习心得 &amp; 互动</h3>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">看完这个 Skill，有什么想法？可以记录在这里（保存在本地）</p>
+    <textarea id="notes" placeholder="写点学习心得...&#10;&#10;比如：多轮阅读的设计思路能用到我自己的工作流里吗？&#10;哪些 reading_prompt 我可以直接拿来用？"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveNotes()">💾 保存心得</button>
+      <button class="btn btn-outline" onclick="clearNotes()">清空</button>
+    </div>
+    <div id="save-status" style="margin-top:8px; font-size:13px; color:var(--green); display:none;">&#10003; 已保存到本地</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>Skill 日报 — 每天拆解一个 AI 技能 | Powered by Buddy ⚡</p>
+  <p style="margin-top:4px;"><a href="index.html" style="color:var(--accent); text-decoration:none;">← 返回首页</a></p>
+</div>
+
+<script>
+function saveNotes() {
+  const notes = document.getElementById('notes').value;
+  localStorage.setItem('skill-daily-005-notes', notes);
+  const status = document.getElementById('save-status');
+  status.style.display = 'block';
+  setTimeout(() => status.style.display = 'none', 2000);
+}
+function clearNotes() {
+  document.getElementById('notes').value = '';
+  localStorage.removeItem('skill-daily-005-notes');
+}
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('skill-daily-005-notes');
+  if (saved) document.getElementById('notes').value = saved;
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('sourceModal').classList.remove('active');
+});
+</script>
+
+<!-- Source Modal -->
+<div class="modal-overlay" id="sourceModal" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>📄 SKILL.md 原文（ArXiv Reader v1.0.3）</h3>
+      <button class="modal-close" onclick="document.getElementById('sourceModal').classList.remove('active')">&times;</button>
+    </div>
+    <div class="modal-body">---
+name: arxiv-reader
+description: 利用python，指定某个arxiv_id/url， 基于 LLM Agent 对这篇arxiv论文进行分类与深度阅读，直接print打印阅读笔记
+description_zh: "基于 LLM 的 ArXiv 论文分类与深度阅读工具"
+description_en: "LLM-based ArXiv paper classification and in-depth reading tool"
+version: 1.0.3
+metadata:
+  openclaw:
+    requires:
+      bins:
+        - uv
+      env:
+        - LLM_API_KEY
+        - LLM_BASE_URL
+        - LLM_TEMPERATURE
+        - LLM_MAX_TOKENS
+    primaryEnv: LLM_API_KEY
+---
+
+## 快速开始
+
+### 1. 配置 `.env`
+
+```bash
+cp .env.example .env   # 或直接编辑 .env
+```
+
+确定你已经配置了：
+- `LLM_API_KEY` — OpenAI 或兼容 API 的密钥
+- `LLM_BASE_URL` — API 地址
+
+### 2. 运行
+
+```bash
+uv venv
+uv pip install -r "{baseDir}/requirements.txt"
+
+# 单篇论文模式：指定 arxiv_id 或 URL
+uv run python "{baseDir}/main.py" --arxiv-id 2401.12345
+uv run python "{baseDir}/main.py" --arxiv-id https://arxiv.org/abs/2401.12345
+uv run python "{baseDir}/main.py" --arxiv-id https://arxiv.org/pdf/2401.12345.pdf
+
+# 指定以特定类别阅读
+uv run python "{baseDir}/main.py" --arxiv-id xxxx --category yyy
+
+# 查看所有类别
+uv run python "{baseDir}/main.py" --list
+```
+
+## 添加新的阅读分类
+
+在 `skills/` 下新建文件夹，包含两个文件：
+
+```
+skills/your_new_category/
+├── _metadata.md        # 分类描述（告诉 Classifier 什么论文属于这个类别）
+└── reading_prompt.md   # 阅读指南（告诉 Reader Agent 重点关注什么）
+```
+
+重启即可自动识别，无需修改任何代码。
+
+## Python包
+
+- LangChain 1.x — Agent 框架（基于 LangGraph）
+- LangChain OpenAI — LLM 接口（兼容 DeepSeek 等 OpenAI-compatible API）
+- arxiv — 官方 Python 库
+- arxiv-to-prompt 获取arxiv论文latex源码
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
