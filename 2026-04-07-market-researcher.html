@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill 日报 #009 — Market Researcher 市场调研专家</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --card: #1a1a2e;
+    --card2: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --text: #e0e0e0;
+    --text2: #a0a0a0;
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+    --orange: #fb923c;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 60px 24px 40px;
+    text-align: center;
+    border-bottom: 3px solid var(--accent);
+  }
+  .hero .issue { color: var(--accent); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 8px; }
+  .hero .subtitle { color: var(--text2); font-size: 18px; margin-bottom: 20px; }
+  .hero .tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .hero .tag { background: rgba(233,69,96,0.2); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+  .meta-bar {
+    display: flex; justify-content: center; gap: 32px; padding: 16px; background: var(--card);
+    font-size: 14px; color: var(--text2); border-bottom: 1px solid #333; flex-wrap: wrap;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+  .action-bar { display: flex; justify-content: center; gap: 12px; padding: 16px; background: rgba(15,52,96,0.3); }
+  .action-btn {
+    padding: 8px 20px; border-radius: 8px; border: 1px solid var(--accent);
+    background: transparent; color: var(--accent); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block;
+  }
+  .action-btn:hover { background: var(--accent); color: #fff; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--card); border: 1px solid #444; border-radius: 16px;
+    width: 90%; max-width: 900px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px; border-bottom: 1px solid #333;
+  }
+  .modal-header h3 { font-size: 18px; }
+  .modal-close { background: none; border: none; color: var(--text2); font-size: 28px; cursor: pointer; }
+  .modal-close:hover { color: var(--accent); }
+  .modal-body {
+    padding: 24px; overflow-y: auto; font-size: 14px; line-height: 1.8; color: var(--text2);
+    font-family: 'Consolas', 'Monaco', monospace; white-space: pre-wrap; word-break: break-word;
+  }
+
+  .section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 22px; font-weight: 700; margin-bottom: 16px;
+    padding-left: 16px; border-left: 4px solid var(--accent);
+  }
+
+  .card {
+    background: var(--card); border-radius: 12px; padding: 24px; margin-bottom: 16px;
+    border: 1px solid #2a2a4a;
+  }
+  .card h3 { color: var(--accent); font-size: 18px; margin-bottom: 12px; }
+  .card p, .card li { color: var(--text2); font-size: 15px; line-height: 1.8; }
+  .card ul { padding-left: 20px; }
+  .card li { margin-bottom: 6px; }
+
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(233,69,96,0.1), rgba(15,52,96,0.2));
+    border: 1px solid var(--accent);
+    border-radius: 12px; padding: 24px; margin-bottom: 16px;
+  }
+  .highlight-box h3 { color: #fff; }
+
+  /* Stats Panel */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;
+  }
+  @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card {
+    background: var(--card); border-radius: 12px; padding: 16px; text-align: center;
+    border: 1px solid #2a2a4a;
+  }
+  .stat-num { font-size: 28px; font-weight: 800; color: var(--blue); }
+  .stat-label { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* Workflow */
+  .workflow-visual {
+    display: flex; align-items: center; justify-content: center; gap: 0;
+    margin: 24px 0; flex-wrap: wrap; padding: 24px 0;
+  }
+  .wf-node {
+    background: var(--card); border: 2px solid var(--blue); border-radius: 12px;
+    padding: 14px 18px; text-align: center; min-width: 120px;
+  }
+  .wf-node .wf-step { font-size: 11px; color: var(--blue); font-weight: 700; letter-spacing: 1px; }
+  .wf-node .wf-name { font-size: 14px; font-weight: 600; margin-top: 4px; }
+  .wf-arrow { font-size: 24px; color: var(--text2); margin: 0 6px; }
+  @media (max-width: 600px) {
+    .workflow-visual { flex-direction: column; }
+    .wf-arrow { transform: rotate(90deg); margin: 6px 0; }
+  }
+
+  /* Pattern List - Collapsible */
+  .pattern-list { counter-reset: pattern; }
+  .pattern-item {
+    background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 12px;
+    border: 1px solid #2a2a4a; cursor: pointer; transition: all 0.2s;
+  }
+  .pattern-item:hover { border-color: var(--accent); }
+  .pattern-header { display: flex; align-items: center; gap: 12px; }
+  .pattern-num {
+    background: var(--accent); color: #fff; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .pattern-name { font-size: 16px; font-weight: 600; flex: 1; }
+  .pattern-toggle { color: var(--text2); font-size: 20px; transition: transform 0.2s; }
+  .pattern-body { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #333; }
+  .pattern-item.open .pattern-body { display: block; }
+  .pattern-item.open .pattern-toggle { transform: rotate(180deg); }
+
+  /* Example blocks */
+  .example-block {
+    background: #0d1117; border: 1px solid #333; border-radius: 8px;
+    padding: 16px; margin: 12px 0; font-size: 13px; line-height: 1.7; color: var(--text2);
+    font-family: 'Consolas', 'Monaco', monospace; white-space: pre-wrap;
+  }
+  .example-label { font-size: 11px; color: var(--blue); font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+
+  /* Comparison */
+  .comparison {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0;
+  }
+  @media (max-width: 600px) { .comparison { grid-template-columns: 1fr; } }
+  .comp-good, .comp-bad {
+    padding: 16px; border-radius: 8px; font-size: 14px; line-height: 1.7;
+  }
+  .comp-good { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); }
+  .comp-bad { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); }
+  .comp-label { font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+  .comp-good .comp-label { color: var(--green); }
+  .comp-bad .comp-label { color: #ef4444; }
+
+  .flow-steps { display: flex; flex-direction: column; gap: 0; }
+  .flow-step { display: flex; gap: 16px; padding: 16px 0; }
+  .flow-dot {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; flex-shrink: 0;
+    background: var(--accent2); color: var(--blue); border: 2px solid var(--blue);
+  }
+  .flow-content h4 { font-size: 16px; margin-bottom: 4px; }
+  .flow-content p { font-size: 14px; color: var(--text2); }
+  .flow-arrow { text-align: center; color: var(--text2); font-size: 20px; margin: -8px 0; padding-left: 10px; }
+
+  .ref-link {
+    display: block; background: var(--card2); border-radius: 8px; padding: 14px 18px;
+    margin-bottom: 8px; text-decoration: none; color: var(--text);
+    border: 1px solid #2a2a4a; transition: all 0.2s;
+  }
+  .ref-link:hover { border-color: var(--blue); }
+  .ref-link .ref-title { font-weight: 600; }
+  .ref-link .ref-desc { font-size: 13px; color: var(--text2); }
+
+  .verdict-box {
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    border: 2px solid var(--green); border-radius: 16px; padding: 32px; text-align: center;
+  }
+  .verdict-box h3 { color: var(--green); font-size: 24px; margin-bottom: 16px; }
+  .stars { font-size: 28px; margin-bottom: 12px; }
+
+  .interact-section { margin-top: 40px; padding: 32px; background: var(--card); border-radius: 16px; border: 1px solid #2a2a4a; }
+  .interact-section h3 { color: var(--accent); margin-bottom: 16px; }
+  .interact-section textarea {
+    width: 100%; height: 100px; background: #0f0f0f; color: var(--text);
+    border: 1px solid #444; border-radius: 8px; padding: 12px; font-size: 14px;
+    resize: vertical; font-family: inherit;
+  }
+  .interact-section textarea:focus { outline: none; border-color: var(--accent); }
+  .btn-row { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 24px; border-radius: 8px; border: none; font-size: 14px;
+    cursor: pointer; font-weight: 600; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #d63851; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid #555; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .footer { text-align: center; padding: 40px 16px; color: var(--text2); font-size: 13px; border-top: 1px solid #222; margin-top: 40px; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .badge-easy { background: rgba(74,222,128,0.2); color: var(--green); }
+  .badge-content { background: rgba(251,191,36,0.2); color: var(--yellow); }
+  .badge-must { background: rgba(233,69,96,0.2); color: var(--accent); }
+  .badge-pro { background: rgba(167,139,250,0.2); color: var(--purple); }
+
+  /* Formula table */
+  .formula-table {
+    width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;
+  }
+  .formula-table th, .formula-table td {
+    padding: 10px 14px; border: 1px solid #333; text-align: left;
+  }
+  .formula-table th { background: var(--accent2); color: var(--blue); font-weight: 700; font-size: 13px; }
+  .formula-table td { color: var(--text2); }
+  .formula-table tr:hover td { background: rgba(96,165,250,0.05); }
+
+  /* Positioning map */
+  .pos-map {
+    background: #0d1117; border: 1px solid #333; border-radius: 12px;
+    padding: 24px; margin: 16px 0; font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px; line-height: 1.5; color: var(--text2); white-space: pre; overflow-x: auto;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="issue">SKILL 日报 · 第 009 期 · 2026.04.07</div>
+  <h1>📊 Market Researcher</h1>
+  <div class="subtitle">市场调研专家 — TAM/SAM/SOM 一套打通的商业分析引擎</div>
+  <div class="tags">
+    <span class="tag">商业分析</span>
+    <span class="tag">市场调研</span>
+    <span class="tag">竞品分析</span>
+    <span class="tag">定价策略</span>
+    <span class="tag">v1.0.0</span>
+  </div>
+</div>
+
+<div class="meta-bar">
+  <span>📦 SKILL.md ~12 KB</span>
+  <span>📋 3 套完整工作流</span>
+  <span>🧮 含公式模板</span>
+  <span>⚡ 纯 Prompt，即装即用</span>
+</div>
+
+<div class="action-bar">
+  <button class="action-btn" onclick="document.getElementById('sourceModal').classList.add('active')">📄 查看 SKILL.md 原文</button>
+  <a href="https://www.investopedia.com/terms/t/total-addressable-market-tam.asp" target="_blank" class="action-btn">🔗 TAM/SAM/SOM 参考</a>
+</div>
+
+<div class="container">
+
+  <!-- 概述 -->
+  <div class="section">
+    <div class="section-title">这个 Skill 是什么？</div>
+    <div class="highlight-box">
+      <h3>一句话：让 AI 变成你的市场分析师，帮你做市场规模测算、消费者研究、竞品分析和定价策略。</h3>
+      <p style="margin-top:12px; color:var(--text2)">
+        Market Researcher 是一个<strong>纯方法论 Skill</strong>，不依赖任何脚本或外部 API。它把 MBA 教材里的市场分析框架塞进了一个 SKILL.md，让 AI 在你需要做商业决策时，能按照标准化流程帮你算市场、看竞品、定价格。核心武器：TAM/SAM/SOM 三级漏斗、Van Westendorp 价格敏感度分析、竞品四维矩阵。
+      </p>
+    </div>
+  </div>
+
+  <!-- 数据面板 -->
+  <div class="section">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num">3</div>
+        <div class="stat-label">核心工作流</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">5</div>
+        <div class="stat-label">TAM 计算步骤</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">4</div>
+        <div class="stat-label">竞品分类维度</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">17</div>
+        <div class="stat-label">质量检查项</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 为什么值得学 -->
+  <div class="section">
+    <div class="section-title">为什么值得学？</div>
+    <div class="card">
+      <p>做 AI 产品、做内容项目、做任何需要"说服领导/投资人这事儿有搞头"的工作，<strong>市场规模测算是你绕不开的基本功</strong>。这个 Skill 把 MBA 里需要一学期学的方法论压缩成可执行的模板。</p>
+      <ul style="margin-top:12px">
+        <li><span class="badge badge-must">必学</span> 想创业、做产品规划、写商业计划书的人</li>
+        <li><span class="badge badge-content">适用</span> 产品经理、运营负责人——需要快速评估市场机会</li>
+        <li><span class="badge badge-pro">进阶</span> 投资分析、战略咨询——标准化分析框架的入门模板</li>
+        <li><span class="badge badge-easy">好学</span> 不需要技术背景，但需要基本的商业直觉</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 核心理念 -->
+  <div class="section">
+    <div class="section-title">核心理念：从天上到地上的三级漏斗</div>
+    <div class="card">
+      <h3>TAM → SAM → SOM：市场规模不是一个数</h3>
+      <p style="margin-bottom:12px">很多人说"这个市场有多大"就扔一个数字，但 Market Researcher 教你用<strong>三层漏斗</strong>把"理论上的天花板"逐步缩小到"你真正能吃到的蛋糕"：</p>
+      <table class="formula-table">
+        <tr><th>层级</th><th>含义</th><th>怎么算</th><th>例子</th></tr>
+        <tr>
+          <td style="color:var(--blue);font-weight:700">TAM</td>
+          <td>Total Addressable Market<br>理论市场天花板</td>
+          <td>= 总市场 x 相关比例 x 平均消费</td>
+          <td>$1.1T x 80% x 2.5% = <strong>$22B</strong></td>
+        </tr>
+        <tr>
+          <td style="color:var(--purple);font-weight:700">SAM</td>
+          <td>Serviceable Addressable Market<br>你能服务的市场</td>
+          <td>= 目标客户数 x 平均预算</td>
+          <td>15,000 x $500K = <strong>$7.5B</strong></td>
+        </tr>
+        <tr>
+          <td style="color:var(--green);font-weight:700">SOM</td>
+          <td>Serviceable Obtainable Market<br>你能拿到的市场</td>
+          <td>= SAM x 现实市场份额%</td>
+          <td>$7.5B x 2% = <strong>$150M</strong></td>
+        </tr>
+      </table>
+      <p style="margin-top:12px; font-size:13px; color:var(--yellow);">关键：Top-Down（自上而下）算完还要用 Bottom-Up（自下而上）交叉验证。如果两个数差3倍以上，说明假设有问题。</p>
+    </div>
+  </div>
+
+  <!-- 工作流可视化 -->
+  <div class="section">
+    <div class="section-title">三大核心工作流</div>
+    <div class="workflow-visual">
+      <div class="wf-node" style="border-color:var(--blue)">
+        <div class="wf-step">WORKFLOW 1</div>
+        <div class="wf-name">TAM/SAM/SOM<br>市场规模测算</div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-node" style="border-color:var(--purple)">
+        <div class="wf-step" style="color:var(--purple)">WORKFLOW 2</div>
+        <div class="wf-name">Van Westendorp<br>定价分析</div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-node" style="border-color:var(--green)">
+        <div class="wf-step" style="color:var(--green)">WORKFLOW 3</div>
+        <div class="wf-name">竞品分析<br>市场定位</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 关键功能模式（可折叠） -->
+  <div class="section">
+    <div class="section-title">关键功能模式（可折叠）</div>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">点击展开每个模块的详细说明和实操示例 👇</p>
+
+    <div class="pattern-list">
+
+      <!-- 1. TAM 计算 -->
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">1</div>
+          <div class="pattern-name">TAM 计算：Top-Down 五步法</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>从宏观市场数据逐步缩小到你关注的细分市场。关键是<strong>每一步都有数据源</strong>，不靠拍脑袋。</p>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-dot">1</div>
+              <div class="flow-content">
+                <h4>定义市场边界</h4>
+                <p>明确产品/服务、地理范围、客户群、时间框架</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-dot">2</div>
+              <div class="flow-content">
+                <h4>拉行业数据（TAM）</h4>
+                <p>数据来源：Gartner、Forrester、IBISWorld、政府统计局</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-dot">3</div>
+              <div class="flow-content">
+                <h4>筛选可服务范围（SAM）</h4>
+                <p>按地理、产品能力、客户规模做减法</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-dot">4</div>
+              <div class="flow-content">
+                <h4>估算可获取份额（SOM）</h4>
+                <p>Y1: 0.1-0.5%, Y2: 0.5-2%, Y3: 1-5% — 保守比乐观有用</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-dot">5</div>
+              <div class="flow-content">
+                <h4>Bottom-Up 验证</h4>
+                <p>目标客户数 x 转化率 x 客单价 → 和 Top-Down 交叉比对</p>
+              </div>
+            </div>
+          </div>
+          <div class="example-block">
+<div class="example-label">实操示例：AI 客服聊天机器人市场</div>
+Market Definition:
+- Product: AI-powered customer service chatbot for e-commerce
+- Geography: United States
+- Customer Segment: E-commerce companies with >$10M revenue
+- Time Frame: 2024-2029
+
+TAM = $1.1T (US e-commerce) x 80% (need CS) x 2.5% (CS spend) = $22B
+SAM = 15,000 companies x $500K avg budget = $7.5B
+SOM (Y3) = $7.5B x 2% = $150M
+
+Bottom-Up Validation:
+15,000 targets x 5% conversion = 750 customers x $50K ACV = $37.5M
+Gap: $150M vs $37.5M = 4x → 需要调整 SOM 假设!</div>
+        </div>
+      </div>
+
+      <!-- 2. 定价分析 -->
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">2</div>
+          <div class="pattern-name">Van Westendorp 价格敏感度分析</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>一种经典的定价研究方法：通过 <strong>4 个问题</strong>找到用户心理价位的交叉点。比拍脑袋定价靠谱100倍。</p>
+          <div class="card" style="margin:16px 0;">
+            <h3 style="color:var(--purple)">四个魔法问题（按顺序问）</h3>
+            <ol style="padding-left:20px; color:var(--text2); line-height:2.2">
+              <li><strong>太贵了</strong> — 什么价格你会觉得贵到不考虑买？</li>
+              <li><strong>太便宜</strong> — 什么价格你会觉得便宜到怀疑质量？</li>
+              <li><strong>有点贵</strong> — 什么价格你觉得开始贵了，但还在考虑范围？</li>
+              <li><strong>很划算</strong> — 什么价格你觉得是好 deal？</li>
+            </ol>
+          </div>
+          <div class="example-block">
+<div class="example-label">分析方法</div>
+画累积百分比曲线，找交叉点：
+- 最优价格点 (OPP) = "太贵" 和 "太便宜" 曲线交叉
+- 可接受范围 = "太便宜" 和 "太贵" 的交叉区间
+
+示例结果：
+OPP: ¥299/月
+Range: ¥199-¥499/月
+建议: 定价 ¥299-¥399 最大化用户接受度</div>
+        </div>
+      </div>
+
+      <!-- 3. 竞品分析 -->
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">3</div>
+          <div class="pattern-name">竞品四维分类法</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>竞品不只是"做同样产品的公司"。这个框架把竞争对手分成<strong>四个层次</strong>，帮你看到完整的竞争图景。</p>
+          <table class="formula-table">
+            <tr><th>类型</th><th>定义</th><th>例子（项目管理软件）</th></tr>
+            <tr><td style="color:var(--accent);font-weight:700">直接竞品</td><td>同产品，同客户</td><td>Asana, Monday.com, ClickUp</td></tr>
+            <tr><td style="color:var(--orange);font-weight:700">间接竞品</td><td>不同产品，解决同问题</td><td>Excel/Sheets（简单项目跟踪）</td></tr>
+            <tr><td style="color:var(--yellow);font-weight:700">替代品</td><td>另一种方式满足需求</td><td>外包给咨询公司</td></tr>
+            <tr><td style="color:var(--purple);font-weight:700">潜在进入者</td><td>有能力轻松进场的</td><td>Microsoft, Google（有相邻产品）</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 4. 竞品情报收集 -->
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">4</div>
+          <div class="pattern-name">竞品情报矩阵</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>情报来源分两层：<strong>公开信息</strong>和<strong>行业信息</strong>。不需要间谍，公开数据就够你画出全貌。</p>
+          <div class="comparison">
+            <div class="comp-good">
+              <div class="comp-label">公开信息</div>
+              <ul style="padding-left:16px; font-size:13px; line-height:2">
+                <li>官网（定价、功能、定位）</li>
+                <li>App Store 评分和评论</li>
+                <li>社交媒体（粉丝、互动率）</li>
+                <li>招聘信息（招什么人=发力方向）</li>
+              </ul>
+            </div>
+            <div class="comp-good">
+              <div class="comp-label">行业信息</div>
+              <ul style="padding-left:16px; font-size:13px; line-height:2">
+                <li>Gartner 魔力象限</li>
+                <li>G2 Crowd 用户评价</li>
+                <li>Crunchbase（融资、估值）</li>
+                <li>LinkedIn（团队规模、关键招聘）</li>
+              </ul>
+            </div>
+          </div>
+          <div class="example-block">
+<div class="example-label">竞品情报模板</div>
+| 竞品 | 定价 | 功能覆盖 | 市场份额 | 用户满意度 |
+|------|------|----------|---------|-----------|
+| Asana | $10-25/人/月 | 85% | ~20% | 4.5/5 (G2) |
+| Monday | $8-16/人/月 | 90% | ~15% | 4.6/5 (G2) |
+| 你的产品 | ¥?/人/月 | ?% | 0% | N/A |</div>
+        </div>
+      </div>
+
+      <!-- 5. 定位图 -->
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">5</div>
+          <div class="pattern-name">二维竞品定位地图</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>把竞品放在二维坐标上，一眼看出<strong>市场空白在哪</strong>。选轴是关键——要选用户真正关心的维度。</p>
+          <div class="pos-map">
+┌─────────────────────────────────┐
+│ 功能复杂                         │
+│                    [企业版产品]   │
+│                                  │
+│  [你的机会 ✦]          [行业龙头] │
+│                                  │
+│                       [Asana]    │
+│  [低价竞品]                      │
+│ 功能简单                         │
+└─────────────────────────────────┘
+  低价                        高价
+
+洞察：「简单但优质」象限 = 空白机会</div>
+        </div>
+      </div>
+
+      <!-- 6. 反模式 -->
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">6</div>
+          <div class="pattern-name">反模式：问卷设计的致命错误</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>Skill 里特别标注了调研中的<strong>经典翻车案例</strong>。数据质量取决于问题质量。</p>
+          <div class="comparison">
+            <div class="comp-bad">
+              <div class="comp-label">❌ 引导性问题</div>
+              <p style="font-size:14px">"你不觉得我们的创新产品比竞品好吗？"</p>
+              <p style="font-size:12px; margin-top:8px; color:#ef4444">答案选项只有 "是"、"有点是"、"也许" — 数据毫无价值</p>
+            </div>
+            <div class="comp-good">
+              <div class="comp-label">✅ 中性问题</div>
+              <p style="font-size:14px">"[产品] 解决 [问题] 的效果和您用过的替代方案比如何？"</p>
+              <p style="font-size:12px; margin-top:8px; color:var(--green)">好得多 / 略好 / 差不多 / 略差 / 差得多 / 没用过替代品</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. 质量清单 -->
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">7</div>
+          <div class="pattern-name">调研质量 17 项清单</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>四个维度全覆盖的质量检查表，帮你在提交调研报告前自查。</p>
+          <div class="card" style="margin:12px 0;">
+            <h3 style="color:var(--blue)">研究设计（5项）</h3>
+            <ul>
+              <li>研究目标可衡量</li>
+              <li>样本量经过统计显著性计算</li>
+              <li>问卷经过小规模试跑</li>
+              <li>无引导性问题</li>
+              <li>定性+定量方法搭配</li>
+            </ul>
+          </div>
+          <div class="card" style="margin:12px 0;">
+            <h3 style="color:var(--purple)">数据收集（4项）</h3>
+            <ul>
+              <li>样本有代表性（人口统计匹配目标市场）</li>
+              <li>问卷回收率 > 25%</li>
+              <li>收集过程有数据质检</li>
+              <li>隐私合规（GDPR/CCPA）</li>
+            </ul>
+          </div>
+          <div class="card" style="margin:12px 0;">
+            <h3 style="color:var(--green)">分析 & 洞察（4项）</h3>
+            <ul>
+              <li>统计显著性验证（p值、置信区间）</li>
+              <li>异常值已识别和处理</li>
+              <li>多假设检验（不只证实你想证实的）</li>
+              <li>洞察有多数据点佐证</li>
+            </ul>
+          </div>
+          <div class="card" style="margin:12px 0;">
+            <h3 style="color:var(--orange)">报告输出（4项）</h3>
+            <ul>
+              <li>结论可行动（不是只列"有趣的发现"）</li>
+              <li>可视化清晰准确</li>
+              <li>承认局限性</li>
+              <li>建议按影响力排序</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. 适用边界 -->
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">8</div>
+          <div class="pattern-name">什么时候该用 / 不该用这个 Skill</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>Market Researcher 有明确的适用边界，不是万能锤。</p>
+          <div class="comparison">
+            <div class="comp-good">
+              <div class="comp-label">✅ 该用</div>
+              <ul style="padding-left:16px; font-size:14px; line-height:2">
+                <li>市场规模测算（TAM/SAM/SOM）</li>
+                <li>消费者行为和购买决策分析</li>
+                <li>竞品市场分析</li>
+                <li>市场机会和空白识别</li>
+                <li>产品-市场匹配验证</li>
+              </ul>
+            </div>
+            <div class="comp-bad">
+              <div class="comp-label">❌ 不该用</div>
+              <ul style="padding-left:16px; font-size:14px; line-height:2">
+                <li>纯竞品分析（用 competitive-analyst）</li>
+                <li>纯数据分析无市场上下文（用 data-analyst）</li>
+                <li>基于历史数据的销售预测（用 data-scientist）</li>
+                <li>营销活动执行（用 content-marketer）</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 参考资料 -->
+  <div class="section">
+    <div class="section-title">参考资料与背景</div>
+    <a href="https://www.investopedia.com/terms/t/total-addressable-market-tam.asp" target="_blank" class="ref-link">
+      <div class="ref-title">📖 Investopedia: TAM 全解</div>
+      <div class="ref-desc">TAM/SAM/SOM 概念的权威解释，含计算方法和案例</div>
+    </a>
+    <a href="https://en.wikipedia.org/wiki/Van_Westendorp%27s_price_sensitivity_meter" target="_blank" class="ref-link">
+      <div class="ref-title">📊 Wikipedia: Van Westendorp 价格敏感度</div>
+      <div class="ref-desc">经典定价研究方法的学术背景和应用指南</div>
+    </a>
+    <a href="https://www.gartner.com/en/research/magic-quadrant" target="_blank" class="ref-link">
+      <div class="ref-title">📈 Gartner Magic Quadrant</div>
+      <div class="ref-desc">竞品分析中常用的行业定位参考</div>
+    </a>
+    <a href="#" class="ref-link" onclick="event.preventDefault(); document.getElementById('sourceModal').classList.add('active')">
+      <div class="ref-title">📦 SKILL.md 原文（~12 KB）</div>
+      <div class="ref-desc">完整的 Skill 定义，包含全部工作流、模板和反模式</div>
+    </a>
+  </div>
+
+  <!-- Buddy 辣评 -->
+  <div class="section">
+    <div class="section-title">Buddy 辣评 🌶️</div>
+    <div class="verdict-box" style="text-align:left; border-color: var(--accent);">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div class="stars">⭐⭐⭐✨</div>
+        <h3 style="color:var(--yellow)">3.5 星 — 好教材，弱工具</h3>
+      </div>
+
+      <div class="card" style="background:rgba(74,222,128,0.05); border-color:rgba(74,222,128,0.3); margin-bottom:16px;">
+        <h3 style="color:var(--green)">👍 优点</h3>
+        <ul>
+          <li><strong>TAM/SAM/SOM 模板是杀手级内容。</strong>五步法带公式、带数据源推荐、带交叉验证。对从没做过市场规模测算的人来说，这一个模块就值回票价。装上后让 AI 帮你算市场，比自己在 Excel 里瞎估靠谱。</li>
+          <li><strong>Van Westendorp 四问法简洁优美。</strong>大多数人定价靠"看看竞品多少钱"或"老板说了算"。四个问题就能找到用户心理价位区间，这是正经市场研究方法，不是 AI 幻觉。</li>
+          <li><strong>反模式设计贴心。</strong>"引导性问题"这个坑，做过用户调研的人都踩过。Skill 给了反面教材和正确写法的直接对比，一看就懂。</li>
+          <li><strong>质量清单实用。</strong>17 项清单覆盖研究全周期，相当于一个轻量版的市场调研 QA checklist。</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.3); margin-bottom:16px;">
+        <h3 style="color:#ef4444">👎 缺点</h3>
+        <ul>
+          <li><strong>纯方法论，零自动化。</strong>没有一行脚本、没有一个 API 调用。所有"数据来源：Gartner、Forrester"——都需要你自己去查。AI 只是帮你套公式，不帮你拿数据。对比 arxiv-reader（自带 API 获取论文）或 xiaohongshu（自带爬虫），Market Researcher 是个"教你方法但不给你工具"的纸上谈兵选手。</li>
+          <li><strong>数据源推荐全是付费墙后面的。</strong>Gartner、Forrester、IBISWorld 的报告动辄几千美元一份。Skill 没有给免费替代方案（Statista 免费层？Crunchbase 免费版？），对预算有限的小团队来说是空头支票。</li>
+          <li><strong>中国市场适配 = 0。</strong>所有案例、数据源、价格单位都是美国市场的。中国做市场调研你得看艾瑞、易观、QuestMobile，定价用人民币，竞品库从 G2 换到人人都是产品经理。这个 Skill 完全没考虑。</li>
+          <li><strong>Workflow 2（消费者行为研究）哪去了？</strong>SKILL.md 有 Workflow 1（TAM）和 Workflow 3（竞品），但 Workflow 2 不见了！文件里直接从 Workflow 1 跳到了 Pattern 2（Van Westendorp）。要么是写漏了，要么是结构出了问题。</li>
+          <li><strong>Bottom-Up 验证太简化。</strong>"转化率 5%"是哪来的？"行业基准"在不同行业差异极大（SaaS B2B 可能 2-5%，消费品电商可能 0.5-1%）。Skill 给了一个数字就跑，没教你怎么估转化率。</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background:rgba(251,191,36,0.05); border-color:rgba(251,191,36,0.3);">
+        <h3 style="color:var(--yellow)">💡 谁最该用？怎么用？</h3>
+        <p style="margin-top:8px;">
+          <strong>AI 产品经理、创业者、商业分析新手</strong>——装上它，下次老板问"这个方向市场多大"的时候，让 AI 帮你跑一遍 TAM/SAM/SOM 五步法。哪怕数据不精确，框架本身就有说服力。<br><br>
+          <strong>建议搭配使用</strong>：Market Researcher + Idea Validator（上期）是天然组合。先用 Idea Validator 验证方向，再用 Market Researcher 量化市场。<br><br>
+          <strong>中国用户注意</strong>：别直接用，先把数据源替换成国内的（艾瑞、易观、QuestMobile），把案例中的美元换人民币、G2 换成36氪/人人都是产品经理。方法论通用，但填进去的数据得本地化。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 互动区 -->
+  <div class="interact-section">
+    <h3>📝 学习心得 & 互动</h3>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">看完这个 Skill，有什么想法？可以记录在这里（保存在本地）</p>
+    <textarea id="notes" placeholder="写点学习心得...&#10;&#10;比如：下次做产品规划时，先用 TAM/SAM/SOM 试算一遍？&#10;Van Westendorp 四问法能不能用在我们的定价讨论上？"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveNotes()">💾 保存心得</button>
+      <button class="btn btn-outline" onclick="clearNotes()">清空</button>
+    </div>
+    <div id="save-status" style="margin-top:8px; font-size:13px; color:var(--green); display:none;">✅ 已保存到本地</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>Skill 日报 — 每天拆解一个 AI 技能 | Powered by Buddy ⚡</p>
+  <p style="margin-top:4px;">
+    <a href="index.html" style="color:var(--blue); text-decoration:none;">← 返回首页</a>
+    &nbsp;|&nbsp;
+    <a href="2026-04-07-idea-validator.html" style="color:var(--blue); text-decoration:none;">上一期：Idea Validator</a>
+  </p>
+</div>
+
+<script>
+function saveNotes() {
+  const notes = document.getElementById('notes').value;
+  localStorage.setItem('skill-daily-009-notes', notes);
+  const status = document.getElementById('save-status');
+  status.style.display = 'block';
+  setTimeout(() => status.style.display = 'none', 2000);
+}
+function clearNotes() {
+  document.getElementById('notes').value = '';
+  localStorage.removeItem('skill-daily-009-notes');
+}
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('skill-daily-009-notes');
+  if (saved) document.getElementById('notes').value = saved;
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('sourceModal').classList.remove('active');
+});
+</script>
+
+<!-- Source Modal -->
+<div class="modal-overlay" id="sourceModal" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>📄 SKILL.md 原文（Market Researcher v1.0.0）</h3>
+      <button class="modal-close" onclick="document.getElementById('sourceModal').classList.remove('active')">&times;</button>
+    </div>
+    <div class="modal-body">---
+name: market-researcher
+description: "Market research specialist focused on comprehensive market analysis,
+consumer behavior insights, and market opportunity identification."
+version: 1.0.0
+---
+
+# Market Researcher
+
+## Purpose
+
+Provides comprehensive market research expertise specializing in market sizing,
+consumer behavior analysis, and strategic opportunity identification.
+
+## When to Use
+
+- Sizing markets (TAM/SAM/SOM calculations)
+- Analyzing consumer behavior and purchase decisions
+- Conducting competitive market analysis
+- Identifying market opportunities and white spaces
+- Validating product-market fit or positioning strategies
+
+## Do NOT invoke when:
+
+- Analyzing direct competitors only (use competitive-analyst)
+- Pure data analysis without market context (use data-analyst)
+- Sales forecasting from existing data (use data-scientist)
+- Marketing campaign execution (use content-marketer or seo-specialist)
+
+---
+
+## Core Workflows
+
+### Workflow 1: Calculate TAM, SAM, SOM
+
+Step 1: Define Market Scope
+- Product/Service, Geography, Customer Segment, Time Frame
+
+Step 2: Calculate TAM (Top-Down)
+- Data sources: Gartner, Forrester, IBISWorld, Government statistics
+- TAM = Total market x relevant % x avg spend
+
+Step 3: Calculate SAM
+- Apply geographic, product, customer size filters
+- SAM = Target companies x avg budget
+
+Step 4: Calculate SOM
+- Y1: 0.1-0.5% of SAM, Y2: 0.5-2%, Y3: 1-5%
+
+Step 5: Bottom-Up Validation
+- Target x conversion rate x ACV
+- Compare with top-down; if gap > 3x, revisit assumptions
+
+### Workflow 3: Competitive Market Analysis
+
+Step 1: Identify Competitors (Direct / Indirect / Substitute / Potential)
+Step 2: Competitive Intelligence (public + industry sources)
+Step 3: 2D Positioning Map (Price vs Feature Complexity)
+
+---
+
+### Pattern 2: Van Westendorp Price Sensitivity Analysis
+
+Four survey questions:
+1. Too Expensive - would not consider buying
+2. Too Cheap - quality concerns
+3. High Side - have to think about it
+4. Good Value - a bargain
+
+OPP = intersection of "Too Expensive" and "Too Cheap"
+Acceptable Range = between curve intersections
+
+---
+
+### Anti-Pattern 2: Survey Leading Questions
+
+Bad: "Don't you think our innovative product is better?"
+(Only positive answer options = worthless data)
+
+Good: "How well does [product] solve [problem] vs alternatives?"
+(Full scale from Much better to Much worse)
+
+---
+
+## Quality Checklist
+
+### Research Design (5 items)
+### Data Collection (4 items)
+### Analysis & Insights (4 items)
+### Reporting (4 items)
+
+Total: 17 quality checkpoints across the research lifecycle.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
