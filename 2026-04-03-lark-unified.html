@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill 日报 #007 — Lark Unified 飞书全能CLI套件</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --card: #1a1a2e;
+    --card2: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --text: #e0e0e0;
+    --text2: #a0a0a0;
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+    --orange: #fb923c;
+    --cyan: #22d3ee;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 60px 24px 40px;
+    text-align: center;
+    border-bottom: 3px solid var(--accent);
+  }
+  .hero .issue { color: var(--accent); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 8px; }
+  .hero .subtitle { color: var(--text2); font-size: 18px; margin-bottom: 20px; }
+  .hero .tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .hero .tag { background: rgba(233,69,96,0.2); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+  .meta-bar {
+    display: flex; justify-content: center; gap: 32px; padding: 16px; background: var(--card);
+    font-size: 14px; color: var(--text2); border-bottom: 1px solid #333; flex-wrap: wrap;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+  .action-bar { display: flex; justify-content: center; gap: 12px; padding: 16px; background: rgba(15,52,96,0.3); flex-wrap: wrap; }
+  .action-btn {
+    padding: 8px 20px; border-radius: 8px; border: 1px solid var(--accent);
+    background: transparent; color: var(--accent); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block;
+  }
+  .action-btn:hover { background: var(--accent); color: #fff; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--card); border: 1px solid #444; border-radius: 16px;
+    width: 90%; max-width: 900px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px; border-bottom: 1px solid #333;
+  }
+  .modal-header h3 { font-size: 18px; }
+  .modal-close { background: none; border: none; color: var(--text2); font-size: 28px; cursor: pointer; }
+  .modal-close:hover { color: var(--accent); }
+  .modal-body {
+    padding: 24px; overflow-y: auto; font-size: 14px; line-height: 1.8; color: var(--text2);
+    font-family: 'Consolas', 'Monaco', monospace; white-space: pre-wrap; word-break: break-word;
+  }
+
+  .section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 22px; font-weight: 700; margin-bottom: 16px;
+    padding-left: 16px; border-left: 4px solid var(--accent);
+  }
+
+  .card {
+    background: var(--card); border-radius: 12px; padding: 24px; margin-bottom: 16px;
+    border: 1px solid #2a2a4a;
+  }
+  .card h3 { color: var(--accent); font-size: 18px; margin-bottom: 12px; }
+  .card p, .card li { color: var(--text2); font-size: 15px; line-height: 1.8; }
+  .card ul { padding-left: 20px; }
+  .card li { margin-bottom: 6px; }
+
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(233,69,96,0.1), rgba(15,52,96,0.2));
+    border: 1px solid var(--accent);
+    border-radius: 12px; padding: 24px; margin-bottom: 16px;
+  }
+  .highlight-box h3 { color: #fff; }
+
+  /* Stats Dashboard */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0;
+  }
+  @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card {
+    background: var(--card); border: 1px solid #2a2a4a; border-radius: 12px;
+    padding: 16px; text-align: center;
+  }
+  .stat-num { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+  .stat-label { font-size: 12px; color: var(--text2); }
+
+  /* Domain Cards */
+  .domain-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 16px 0;
+  }
+  @media (max-width: 600px) { .domain-grid { grid-template-columns: 1fr; } }
+  .domain-card {
+    background: var(--card); border: 1px solid #2a2a4a; border-radius: 12px;
+    padding: 20px; transition: all 0.2s;
+  }
+  .domain-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .domain-icon { font-size: 28px; margin-bottom: 8px; }
+  .domain-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+  .domain-desc { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
+  .domain-cmds { font-size: 12px; color: var(--blue); }
+
+  /* Pattern items */
+  .pattern-list { counter-reset: pattern; }
+  .pattern-item {
+    background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 12px;
+    border: 1px solid #2a2a4a; cursor: pointer; transition: all 0.2s;
+  }
+  .pattern-item:hover { border-color: var(--accent); }
+  .pattern-header { display: flex; align-items: center; gap: 12px; }
+  .pattern-num {
+    background: var(--accent); color: #fff; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .pattern-name { font-size: 16px; font-weight: 600; flex: 1; }
+  .pattern-toggle { color: var(--text2); font-size: 20px; transition: transform 0.2s; }
+  .pattern-body { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #333; }
+  .pattern-item.open .pattern-body { display: block; }
+  .pattern-item.open .pattern-toggle { transform: rotate(180deg); }
+
+  /* Code blocks */
+  .code-block {
+    background: #0d0d0d; border: 1px solid #333; border-radius: 8px;
+    padding: 14px 16px; font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px; color: var(--green); overflow-x: auto; margin: 12px 0;
+    line-height: 1.6;
+  }
+  .code-block .cmd { color: var(--cyan); }
+  .code-block .flag { color: var(--orange); }
+  .code-block .comment { color: #666; }
+
+  /* Flow */
+  .flow-steps { display: flex; flex-direction: column; gap: 0; }
+  .flow-step { display: flex; gap: 16px; padding: 16px 0; }
+  .flow-dot {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; flex-shrink: 0;
+    background: var(--accent2); color: var(--blue); border: 2px solid var(--blue);
+  }
+  .flow-content h4 { font-size: 16px; margin-bottom: 4px; }
+  .flow-content p { font-size: 14px; color: var(--text2); }
+  .flow-arrow { text-align: center; color: var(--text2); font-size: 20px; margin: -8px 0; padding-left: 10px; }
+
+  /* Architecture diagram */
+  .arch-box {
+    background: linear-gradient(135deg, #0f0f2e, #1a1a3e); border: 1px solid #333;
+    border-radius: 12px; padding: 24px; margin: 16px 0; font-family: 'Consolas', monospace;
+    font-size: 13px; line-height: 1.8; overflow-x: auto; color: var(--text2);
+  }
+  .arch-box .layer { color: var(--blue); font-weight: 700; }
+  .arch-box .node { color: var(--green); }
+  .arch-box .arrow { color: var(--accent); }
+  .arch-box .dim { color: #666; }
+
+  /* Permission table */
+  .perm-table {
+    width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px;
+  }
+  .perm-table th {
+    background: var(--accent2); color: var(--blue); padding: 10px 12px;
+    text-align: left; border-bottom: 2px solid var(--accent);
+  }
+  .perm-table td {
+    padding: 8px 12px; border-bottom: 1px solid #2a2a4a; color: var(--text2);
+  }
+  .perm-table tr:hover td { background: rgba(96, 165, 250, 0.05); }
+
+  .ref-link {
+    display: block; background: var(--card2); border-radius: 8px; padding: 14px 18px;
+    margin-bottom: 8px; text-decoration: none; color: var(--text);
+    border: 1px solid #2a2a4a; transition: all 0.2s;
+  }
+  .ref-link:hover { border-color: var(--blue); }
+  .ref-link .ref-title { font-weight: 600; }
+  .ref-link .ref-desc { font-size: 13px; color: var(--text2); }
+
+  .verdict-box {
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    border: 2px solid var(--green); border-radius: 16px; padding: 32px; text-align: center;
+  }
+  .verdict-box h3 { color: var(--green); font-size: 24px; margin-bottom: 16px; }
+  .stars { font-size: 28px; margin-bottom: 12px; }
+
+  .interact-section { margin-top: 40px; padding: 32px; background: var(--card); border-radius: 16px; border: 1px solid #2a2a4a; }
+  .interact-section h3 { color: var(--accent); margin-bottom: 16px; }
+  .interact-section textarea {
+    width: 100%; height: 100px; background: #0f0f0f; color: var(--text);
+    border: 1px solid #444; border-radius: 8px; padding: 12px; font-size: 14px;
+    resize: vertical; font-family: inherit;
+  }
+  .interact-section textarea:focus { outline: none; border-color: var(--accent); }
+  .btn-row { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 24px; border-radius: 8px; border: none; font-size: 14px;
+    cursor: pointer; font-weight: 600; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #d63851; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid #555; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .footer { text-align: center; padding: 40px 16px; color: var(--text2); font-size: 13px; border-top: 1px solid #222; margin-top: 40px; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .badge-easy { background: rgba(74,222,128,0.2); color: var(--green); }
+  .badge-content { background: rgba(251,191,36,0.2); color: var(--yellow); }
+  .badge-must { background: rgba(233,69,96,0.2); color: var(--accent); }
+  .badge-pro { background: rgba(167,139,250,0.2); color: var(--purple); }
+
+  .identity-box {
+    display: flex; gap: 16px; margin: 12px 0;
+  }
+  @media (max-width: 600px) { .identity-box { flex-direction: column; } }
+  .id-card {
+    flex: 1; background: var(--card); border-radius: 12px; padding: 18px;
+    border: 1px solid #2a2a4a;
+  }
+  .id-card h4 { font-size: 15px; margin-bottom: 8px; }
+  .id-card p { font-size: 13px; color: var(--text2); }
+  .id-user { border-left: 3px solid var(--blue); }
+  .id-bot { border-left: 3px solid var(--green); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="issue">SKILL 日报 · 第 007 期 · 2026.04.03</div>
+  <h1>🔗 Lark Unified</h1>
+  <div class="subtitle">飞书/Lark 全能 CLI 套件 — 200+ 命令打通 11 个业务域</div>
+  <div class="tags">
+    <span class="tag">效率提升</span>
+    <span class="tag">办公协同</span>
+    <span class="tag">飞书/Lark</span>
+    <span class="tag">CLI 工具</span>
+    <span class="tag">自动化</span>
+  </div>
+</div>
+
+<div class="meta-bar">
+  <span>📦 SKILL.md + 12 篇参考文档</span>
+  <span>📄 含 lark_setup.py 安装脚本</span>
+  <span>🔧 需 lark-cli + 飞书应用配置</span>
+  <span>🏢 覆盖 IM/文档/表格/日历/任务/邮件/Wiki 等</span>
+</div>
+
+<div class="action-bar">
+  <button class="action-btn" onclick="document.getElementById('sourceModal').classList.add('active')">📄 查看 SKILL.md 原文</button>
+  <a href="https://open.feishu.cn" target="_blank" class="action-btn">🔗 飞书开放平台</a>
+  <a href="https://open.larksuite.com" target="_blank" class="action-btn">🌍 Lark 国际版</a>
+</div>
+
+<div class="container">
+
+  <!-- 一句话概述 -->
+  <div class="section">
+    <div class="section-title">这个 Skill 是什么？</div>
+    <div class="highlight-box">
+      <h3>一句话：让 AI 助手直接操作飞书的一切 — 发消息、写文档、查日程、建任务、管表格，一行命令搞定。</h3>
+      <p style="margin-top:12px; color:var(--text2)">
+        这不是一个简单的"聊天机器人"。Lark Unified 是飞书/Lark 全平台的<strong>CLI 统一接入层</strong>，封装了 200+ 条命令覆盖即时通讯、云文档、电子表格、多维表格、日历、邮件、任务、Wiki、网盘、视频会议、通讯录共 <strong>11 个业务域</strong>。还附带 19 个 AI Agent 优化的子 Skill，以及自定义 Skill 创建能力。简单说：<strong>你不用再打开飞书客户端了，AI 帮你干完</strong>。
+      </p>
+    </div>
+  </div>
+
+  <!-- 数据面板 -->
+  <div class="section">
+    <div class="section-title">数据面板</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--accent)">200+</div>
+        <div class="stat-label">CLI 命令数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--blue)">11</div>
+        <div class="stat-label">业务域覆盖</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--green)">12</div>
+        <div class="stat-label">参考文档数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--yellow)">19</div>
+        <div class="stat-label">AI Agent 子 Skill</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--purple)">2</div>
+        <div class="stat-label">认证身份模式</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--orange)">30+</div>
+        <div class="stat-label">OAuth 权限范围</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--cyan)">1</div>
+        <div class="stat-label">自动化安装脚本</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--accent)">2</div>
+        <div class="stat-label">内置工作流模板</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 核心理念 -->
+  <div class="section">
+    <div class="section-title">核心理念：把飞书变成 AI 的"手"</div>
+    <div class="card">
+      <h3>🧠 为什么需要一个飞书 CLI？</h3>
+      <p>飞书是国内企业协作的主流平台，但日常操作都绑在 GUI 上——切群、找文档、查日程、建任务，每天重复几十次。</p>
+      <p style="margin-top:12px">Lark Unified 的设计逻辑很清晰：<strong>把所有飞书操作都变成命令行指令，让 AI 能直接执行</strong>。</p>
+      <ul style="margin-top:12px">
+        <li><strong>统一入口</strong>：不管是发消息还是建表格，都是 <code>lark-cli &lt;domain&gt; &lt;resource&gt; &lt;method&gt;</code></li>
+        <li><strong>快捷方式优先</strong>：高频操作有 <code>+shortcut</code> 封装，一行搞定</li>
+        <li><strong>双身份模式</strong>：<code>--as user</code>（以你的身份操作）或 <code>--as bot</code>（以应用机器人身份操作）</li>
+        <li><strong>Agent 友好</strong>：所有输出支持 JSON/CSV/YAML/Table 格式，方便程序解析</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>🔑 双身份认证机制（关键设计）</h3>
+      <p style="margin-bottom:12px">同一条命令，用不同身份执行可能结果完全不同。这是整个 Skill 最核心的概念：</p>
+      <div class="identity-box">
+        <div class="id-card id-user">
+          <h4 style="color:var(--blue)">👤 User 身份</h4>
+          <p>使用 <code>--as user</code><br>
+          Token: user_access_token<br>
+          权限 = 你自己能做什么<br>
+          适合：个人操作、查自己的日程消息</p>
+        </div>
+        <div class="id-card id-bot">
+          <h4 style="color:var(--green)">🤖 Bot 身份</h4>
+          <p>使用 <code>--as bot</code><br>
+          Token: tenant_access_token<br>
+          权限 = 应用的 OAuth 范围<br>
+          适合：建群、群发消息、管理操作</p>
+        </div>
+      </div>
+      <p style="margin-top:12px; font-size:14px; color:var(--yellow)">⚠️ 实际使用中最常见的坑：权限不足返回空结果或报错。永远先检查身份 + 权限范围。</p>
+    </div>
+  </div>
+
+  <!-- 11 大业务域 -->
+  <div class="section">
+    <div class="section-title">11 大业务域全景</div>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">飞书的每个核心功能模块，Lark Unified 都有对应的命令域 👇</p>
+
+    <div class="domain-grid">
+      <div class="domain-card">
+        <div class="domain-icon">✉️</div>
+        <div class="domain-name">Instant Messaging（即时通讯）</div>
+        <div class="domain-desc">发消息、搜聊天记录、管群组、下载附件、表情回复</div>
+        <div class="domain-cmds">10 个快捷命令 · 消息/群聊/表情/图片/置顶</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-icon">📄</div>
+        <div class="domain-name">Cloud Documents（云文档）</div>
+        <div class="domain-desc">创建/编辑/搜索文档，支持 Wiki 链接特殊解析</div>
+        <div class="domain-cmds">5 个快捷命令 · 含 Block 级操作</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-icon">📊</div>
+        <div class="domain-name">Spreadsheets（电子表格）</div>
+        <div class="domain-desc">读写/追加/查找表格数据，批量操作</div>
+        <div class="domain-cmds">5 个快捷命令 · 支持范围读写</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-icon">🗂️</div>
+        <div class="domain-name">Base（多维表格）</div>
+        <div class="domain-desc">CRUD 记录、管理字段/视图/仪表盘/工作流</div>
+        <div class="domain-cmds">6 个快捷命令 · 20+ 字段类型</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-icon">📅</div>
+        <div class="domain-name">Calendar（日历）</div>
+        <div class="domain-desc">查日程、建会议、查空闲时段、智能推荐时间</div>
+        <div class="domain-cmds">6 个快捷命令 · 含 Freebusy 查询</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-icon">📧</div>
+        <div class="domain-name">Mail（邮件）</div>
+        <div class="domain-desc">发邮件、搜邮件、管草稿、管标签、下附件</div>
+        <div class="domain-cmds">4 个快捷命令 · 安全输入防注入</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-icon">📋</div>
+        <div class="domain-name">Tasks（任务）</div>
+        <div class="domain-desc">建任务、分配、子任务、协作者管理</div>
+        <div class="domain-cmds">4 个快捷命令 · 4 种状态流转</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-icon">📚</div>
+        <div class="domain-name">Wiki（知识库）</div>
+        <div class="domain-desc">空间管理、页面层级、Wiki 链接解析</div>
+        <div class="domain-cmds">3 个快捷命令 · 关键 Token 解析逻辑</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-icon">💾</div>
+        <div class="domain-name">Drive（网盘）</div>
+        <div class="domain-desc">上传/下载/复制/移动文件，权限管理</div>
+        <div class="domain-cmds">6 个快捷命令 · 文件夹/评论操作</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-icon">🎥</div>
+        <div class="domain-name">Video Conference（视频会议）</div>
+        <div class="domain-desc">搜会议、取录像、取会议纪要</div>
+        <div class="domain-cmds">会议/录像/纪要 API</div>
+      </div>
+      <div class="domain-card" style="grid-column: span 2;">
+        <div class="domain-icon">👥</div>
+        <div class="domain-name">Contacts（通讯录）+ 更多</div>
+        <div class="domain-desc">搜索用户/部门 + 白板绘图(Mermaid DSL) + 实时事件订阅(WebSocket) + OpenAPI 探索器 + 自定义 Skill 创建器</div>
+        <div class="domain-cmds">通讯录 3 个快捷命令 · 事件订阅 · Skill Maker</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 关键功能模式 -->
+  <div class="section">
+    <div class="section-title">关键功能模式（可折叠）</div>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">点击展开查看命令示例和核心用法 👇</p>
+
+    <div class="pattern-list">
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">1</div>
+          <div class="pattern-name">即时通讯：一行命令发消息建群</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>飞书消息支持 text/post/image/file/audio/video/card 等类型。Bot 身份可以群发，User 身份可以搜自己的聊天记录。</p>
+          <div class="code-block">
+<span class="comment"># 搜索群聊</span>
+<span class="cmd">lark-cli</span> im <span class="flag">+chat-search</span> --keyword "产品组"
+
+<span class="comment"># 发消息到群</span>
+<span class="cmd">lark-cli</span> im <span class="flag">+messages-send</span> --chat-id oc_xxx --text "日报已提交"
+
+<span class="comment"># 搜索消息记录（限定时间范围和发送者）</span>
+<span class="cmd">lark-cli</span> im <span class="flag">+messages-search</span> --query "deadline" --from-user ou_xxx --start-time 2026-04-01 --end-time 2026-04-03
+
+<span class="comment"># 下载消息中的图片/文件</span>
+<span class="cmd">lark-cli</span> im <span class="flag">+messages-resources-download</span> --message-id om_xxx</div>
+          <p style="margin-top:8px; font-size:13px; color:var(--yellow)">⚠️ Bot 身份取消息时，发送者名字可能显示为 open_id 而非真名。需在开发者后台设置应用可见范围。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">2</div>
+          <div class="pattern-name">多维表格：AI 操作结构化数据的最佳入口</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>多维表格（Base）是飞书最强大的数据管理工具。支持 20+ 字段类型，含公式、关联、汇总、自动化工作流。</p>
+          <div class="code-block">
+<span class="comment"># 列出某个 Base 的所有表</span>
+<span class="cmd">lark-cli</span> base tables list <span class="flag">--base-id</span> app_xxx
+
+<span class="comment"># 查字段定义（了解表结构）</span>
+<span class="cmd">lark-cli</span> base <span class="flag">+fields-list</span> --base-id app_xxx --table-id tbl_xxx
+
+<span class="comment"># 查询记录（带过滤和排序）</span>
+<span class="cmd">lark-cli</span> base <span class="flag">+tables-records-list</span> --base-id app_xxx --table-id tbl_xxx --filter "[condition]" --sort "[sort_spec]" --limit 100
+
+<span class="comment"># 创建新记录</span>
+<span class="cmd">lark-cli</span> base <span class="flag">+tables-records-create</span> --base-id app_xxx --table-id tbl_xxx --data '{"fld_name":"value"}'
+
+<span class="comment"># 触发自动化工作流</span>
+<span class="cmd">lark-cli</span> base workflows trigger <span class="flag">--base-id</span> app_xxx</div>
+          <p style="margin-top:8px">支持的字段类型：文本、长文本、数字、单选/多选、日期、复选框、评分、用户、部门、查找引用、公式、汇总、附件等。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">3</div>
+          <div class="pattern-name">云文档 & Wiki：Wiki 链接的"坑"必须知道</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>飞书文档有多种类型（docx/doc/sheet/bitable/slides/mindnote），Wiki 链接可能指向其中任何一种。<strong>不能假设 wiki_token 就是文档 token</strong>。</p>
+          <div class="code-block">
+<span class="comment"># ❌ 错误：直接用 wiki_token 当 file_token</span>
+<span class="comment"># ✅ 正确：先解析 Wiki 节点</span>
+<span class="cmd">lark-cli</span> wiki spaces get_node <span class="flag">--params</span> '{"token":"wikcnxxxxxxx"}'
+<span class="comment"># 返回 obj_type (docx/sheet/bitable...) 和 obj_token</span>
+
+<span class="comment"># 然后根据 obj_type 调用对应 API</span>
+<span class="cmd">lark-cli</span> doc <span class="flag">+docs-get</span> --document-id [obj_token]  <span class="comment"># if obj_type=docx</span>
+<span class="cmd">lark-cli</span> sheets <span class="flag">+spreadsheets-read</span> --spreadsheet-id [obj_token]  <span class="comment"># if obj_type=sheet</span></div>
+          <p style="margin-top:8px; font-size:13px; color:var(--yellow)">⚠️ 这是新手最容易踩的坑。Wiki 页面的 URL 中的 token 不是文档 token，必须先查询转换。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">4</div>
+          <div class="pattern-name">日历智能调度：查空闲 + 推荐时间</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>不只是查日程，还能查多人空闲时段、自动推荐最佳会议时间。AI 安排会议的完美工具。</p>
+          <div class="code-block">
+<span class="comment"># 查看今日日程</span>
+<span class="cmd">lark-cli</span> calendar <span class="flag">+agenda</span>
+
+<span class="comment"># 查某人的空闲时段</span>
+<span class="cmd">lark-cli</span> calendar <span class="flag">+freebusy</span> --user ou_xxx --start-time 2026-04-03T08:00:00 --end-time 2026-04-03T18:00:00
+
+<span class="comment"># 智能推荐会议时间（考虑多人日程）</span>
+<span class="cmd">lark-cli</span> calendar <span class="flag">+suggestion</span> --user ou_xxx --duration 60 --start-time 2026-04-03 --end-time 2026-04-07 --attendees "alice@co.com" "bob@co.com"
+
+<span class="comment"># 创建会议并邀请参与者</span>
+<span class="cmd">lark-cli</span> calendar <span class="flag">+create</span> --user ou_xxx --title "周会" --start-time 2026-04-04T14:00:00 --end-time 2026-04-04T15:00:00 --attendees "alice@co.com"</div>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">5</div>
+          <div class="pattern-name">电子表格自动化：读写追加一气呵成</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>飞书表格操作使用 A1 记法标注范围，支持批量读写、查找替换。自动化数据录入的利器。</p>
+          <div class="code-block">
+<span class="comment"># 创建表格</span>
+<span class="cmd">lark-cli</span> sheets <span class="flag">+spreadsheets-create</span> --title "Q2 数据"
+
+<span class="comment"># 写入表头</span>
+<span class="cmd">lark-cli</span> sheets <span class="flag">+spreadsheets-append</span> --spreadsheet-id spr_xxx --range "Sheet1!A1" --values '[["姓名","部门","金额"]]'
+
+<span class="comment"># 追加数据</span>
+<span class="cmd">lark-cli</span> sheets <span class="flag">+spreadsheets-append</span> --spreadsheet-id spr_xxx --values '[["张三","产品",5000],["李四","技术",8000]]'
+
+<span class="comment"># 读取数据</span>
+<span class="cmd">lark-cli</span> sheets <span class="flag">+spreadsheets-read</span> --spreadsheet-id spr_xxx --range "Sheet1!A1:C100"
+
+<span class="comment"># 查找</span>
+<span class="cmd">lark-cli</span> sheets <span class="flag">+spreadsheets-find</span> --spreadsheet-id spr_xxx --find "张三"</div>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">6</div>
+          <div class="pattern-name">权限系统：30+ OAuth Scope 全景</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>每个操作都需要对应的 OAuth 权限范围。配置不对就会返回空结果或报错（而且不一定有清晰的错误提示）。</p>
+          <table class="perm-table">
+            <tr><th>业务域</th><th>权限范围</th><th>说明</th></tr>
+            <tr><td>IM</td><td><code>im:chat:readonly</code> / <code>im:message</code></td><td>读群聊 / 读消息</td></tr>
+            <tr><td>IM</td><td><code>im:message:send_as_bot</code></td><td>Bot 发消息</td></tr>
+            <tr><td>文档</td><td><code>docx:document</code></td><td>读写文档</td></tr>
+            <tr><td>表格</td><td><code>sheets:spreadsheet</code></td><td>读写表格</td></tr>
+            <tr><td>多维表</td><td><code>bitable:app</code></td><td>读写多维表格</td></tr>
+            <tr><td>日历</td><td><code>calendar:calendar:readonly</code> / <code>calendar:event</code></td><td>读日历 / 管事件</td></tr>
+            <tr><td>任务</td><td><code>task:task</code></td><td>读写任务</td></tr>
+            <tr><td>Wiki</td><td><code>wiki:wiki:readonly</code></td><td>读 Wiki</td></tr>
+            <tr><td>网盘</td><td><code>drive:drive:readonly</code> / <code>drive:file</code></td><td>浏览 / 上传下载</td></tr>
+            <tr><td>通讯录</td><td><code>contact:contact:readonly</code></td><td>搜索用户</td></tr>
+          </table>
+          <p style="margin-top:8px; font-size:13px; color:var(--yellow)">⚠️ 添加权限后必须在应用后台<strong>发布新版本</strong>，然后重新获取 Token 才能生效！</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">7</div>
+          <div class="pattern-name">安装配置：Device Flow 免 TTY 认证</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>内置 <code>lark_setup.py</code> 脚本实现了 Device Flow 认证，无需交互式终端（TTY）就能完成配置。</p>
+          <div class="code-block">
+<span class="comment"># Step 1: 安装 lark-cli</span>
+npm install -g @larksuite/cli
+
+<span class="comment"># Step 2: 运行自动配置脚本（飞书版）</span>
+python3 lark_setup.py
+
+<span class="comment"># Lark 国际版</span>
+python3 lark_setup.py <span class="flag">--brand lark</span>
+
+<span class="comment"># 无法打开浏览器时</span>
+python3 lark_setup.py <span class="flag">--no-browser</span>
+
+<span class="comment"># 验证配置</span>
+<span class="cmd">lark-cli</span> config view</div>
+          <p style="margin-top:8px">脚本流程：请求 Device Code → 浏览器授权 → 轮询等待 → 保存配置。中间的 <code>authorization_pending</code> HTTP 400 是<strong>正常行为</strong>，不是错误。</p>
+          <p style="margin-top:8px; font-size:13px; color:var(--accent)">🚫 绝对不要运行 <code>lark-cli config init --new</code> 或 <code>lark-cli config init</code>（交互式），会在 AI 环境中卡死！</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">8</div>
+          <div class="pattern-name">进阶能力：事件订阅 + 自定义 Skill</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>除了主动调用 API，还支持被动订阅实时事件（WebSocket），以及用 Skill Maker 创建自定义工作流。</p>
+          <div class="code-block">
+<span class="comment"># 订阅消息事件（实时推送）</span>
+<span class="cmd">lark-cli</span> event subscribe <span class="flag">--event-type</span> message.receive --endpoint wss://your-endpoint
+
+<span class="comment"># 探索 API</span>
+<span class="cmd">lark-cli</span> openapi search <span class="flag">--query</span> "message"
+<span class="cmd">lark-cli</span> openapi get <span class="flag">--api</span> im.messages.send
+
+<span class="comment"># 白板/绘图（Mermaid 语法）</span>
+<span class="cmd">lark-cli</span> whiteboard create <span class="flag">--title</span> "架构图" --content "graph LR; A[Start] --> B[Process] --> C[End]"</div>
+          <p style="margin-top:8px">支持的实时事件：消息创建/更新/删除、文档更新、多维表记录变更、日历事件变化等。</p>
+          <p style="margin-top:8px">内置 2 个工作流模板：<strong>Meeting Summary Workflow</strong>（会议纪要聚合）和 <strong>Standup Report Workflow</strong>（站会日报生成）。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 架构图 -->
+  <div class="section">
+    <div class="section-title">系统架构全景</div>
+    <div class="arch-box">
+<span class="layer">┌─────────────────────────────────────────────────────────┐</span>
+<span class="layer">│                      AI Agent Layer                      │</span>
+<span class="layer">│  </span><span class="node">SKILL.md (入口)</span> → 19 AI Agent Sub-Skills → <span class="node">Skill Maker</span><span class="layer">  │</span>
+<span class="layer">├─────────────────────────────────────────────────────────┤</span>
+<span class="layer">│                    lark-cli (统一 CLI)                   │</span>
+<span class="layer">│  </span><span class="dim">lark-cli &lt;domain&gt; &lt;resource&gt; &lt;method&gt; [flags]</span><span class="layer">           │</span>
+<span class="layer">│  </span><span class="dim">lark-cli &lt;domain&gt; +&lt;shortcut&gt; [flags]</span><span class="layer">                  │</span>
+<span class="layer">├────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬───────┤</span>
+<span class="layer">│</span><span class="node"> IM </span><span class="layer">│</span><span class="node">Doc </span><span class="layer">│</span><span class="node">Sheet</span><span class="layer">│</span><span class="node">Base</span><span class="layer">│</span><span class="node"> Cal </span><span class="layer">│</span><span class="node">Mail</span><span class="layer">│</span><span class="node">Task</span><span class="layer">│</span><span class="node">Wiki</span><span class="layer">│</span><span class="node">Drive</span><span class="layer">│</span><span class="node"> VC </span><span class="layer">│</span><span class="node">Contact</span><span class="layer">│</span>
+<span class="layer">├────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴───────┤</span>
+<span class="layer">│               </span><span class="arrow">Authentication & Permission Layer</span><span class="layer">           │</span>
+<span class="layer">│  </span><span class="dim">user_access_token (--as user)</span>  |  <span class="dim">tenant_access_token (--as bot)</span><span class="layer"> │</span>
+<span class="layer">│  </span><span class="dim">OAuth Scopes: im:* | docs:* | sheets:* | bitable:* | ...</span><span class="layer">│</span>
+<span class="layer">├─────────────────────────────────────────────────────────┤</span>
+<span class="layer">│               </span><span class="node">lark_setup.py (Device Flow)</span><span class="layer">               │</span>
+<span class="layer">│  </span><span class="dim">begin → browser auth → poll → save config</span><span class="layer">             │</span>
+<span class="layer">├─────────────────────────────────────────────────────────┤</span>
+<span class="layer">│           </span><span class="arrow">Feishu Open API / Lark Open API</span><span class="layer">              │</span>
+<span class="layer">│  </span><span class="dim">open.feishu.cn (中国) | open.larksuite.com (国际)</span><span class="layer">      │</span>
+<span class="layer">└─────────────────────────────────────────────────────────┘</span>
+    </div>
+  </div>
+
+  <!-- 使用流程 -->
+  <div class="section">
+    <div class="section-title">典型使用流程</div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-dot">1</div>
+        <div class="flow-content">
+          <h4>安装 lark-cli & 配置认证</h4>
+          <p>npm install -g @larksuite/cli → 运行 lark_setup.py → 浏览器授权</p>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-dot">2</div>
+        <div class="flow-content">
+          <h4>在开发者后台添加权限</h4>
+          <p>open.feishu.cn → 找到应用 → 添加 OAuth Scope → 发布新版本</p>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-dot">3</div>
+        <div class="flow-content">
+          <h4>选择身份模式</h4>
+          <p>个人操作用 --as user，应用/自动化操作用 --as bot</p>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-dot">4</div>
+        <div class="flow-content">
+          <h4>执行命令（优先用快捷方式）</h4>
+          <p>lark-cli &lt;domain&gt; +&lt;shortcut&gt; [flags] — JSON/CSV/Table 输出</p>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-dot">5</div>
+        <div class="flow-content">
+          <h4>组合场景自动化</h4>
+          <p>查日程 → 建会议 → 发通知 → 更新任务状态 → 全链路无需打开飞书</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 参考资料 -->
+  <div class="section">
+    <div class="section-title">参考资料与文档架构</div>
+    <a href="https://open.feishu.cn" target="_blank" class="ref-link">
+      <div class="ref-title">🏢 飞书开放平台（open.feishu.cn）</div>
+      <div class="ref-desc">应用创建、权限配置、API 文档、Bot 管理的官方入口</div>
+    </a>
+    <a href="#" class="ref-link" onclick="event.preventDefault()">
+      <div class="ref-title">📖 SKILL.md — 主文件（约 8KB）</div>
+      <div class="ref-desc">统一入口，涵盖 11 域概览、快捷命令汇总、CLI 用法、安装配置</div>
+    </a>
+    <a href="#" class="ref-link" onclick="event.preventDefault()">
+      <div class="ref-title">📚 references/ — 12 篇领域参考文档</div>
+      <div class="ref-desc">lark-im.md / lark-doc.md / lark-sheets.md / lark-base.md / lark-calendar.md / lark-mail.md / lark-task.md / lark-wiki.md / lark-drive.md / lark-shared.md / other-domains.md / api_reference.md</div>
+    </a>
+    <a href="#" class="ref-link" onclick="event.preventDefault()">
+      <div class="ref-title">🔧 scripts/lark_setup.py（216行）</div>
+      <div class="ref-desc">Device Flow 自动配置脚本，支持飞书/Lark 双品牌，免 TTY 环境运行</div>
+    </a>
+  </div>
+
+  <!-- 辣评 -->
+  <div class="section">
+    <div class="section-title">Buddy 辣评 🌶️</div>
+    <div class="verdict-box" style="text-align:left; border-color: var(--accent);">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div class="stars">⭐⭐⭐⭐</div>
+        <h3 style="color:var(--green)">飞书重度用户必装，但门槛不低</h3>
+      </div>
+
+      <div class="card" style="background:rgba(74,222,128,0.05); border-color:rgba(74,222,128,0.3); margin-bottom:16px;">
+        <h3 style="color:var(--green)">👍 优点</h3>
+        <ul>
+          <li><strong>覆盖面碾压级。</strong>11 个业务域、200+ 命令、12 篇参考文档、19 个 Agent 子 Skill。在"飞书自动化"这个赛道上，这是我见过的最完整方案。别的 Skill 能操控一两个飞书功能，这个直接把整个飞书平台变成了 AI 的工具箱。</li>
+          <li><strong>快捷方式设计精良。</strong><code>+messages-send</code>、<code>+agenda</code>、<code>+freebusy</code> 这些高频操作都有一步到位的快捷封装。不用背 API 结构，一行命令解决问题。高频路径做到了真正好用。</li>
+          <li><strong>双身份模型是正确的架构决策。</strong>User 身份和 Bot 身份的分离，让权限边界清晰。个人操作不会越界，应用自动化有独立权限空间。这是真正考虑过安全和实际部署场景的设计。</li>
+          <li><strong>Device Flow 安装脚本解决了真痛点。</strong>在 AI 环境（无 TTY）中配置飞书凭据一直是个头疼问题。216 行的 lark_setup.py 优雅地解决了这个问题，连 Lark 国际版切换都考虑到了。</li>
+          <li><strong>文档架构合理。</strong>一个 SKILL.md 总览 + 12 篇领域参考文档的分层结构，既保证了 AI 能快速定位功能，又不会因为单文件过大导致 Token 浪费。</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.3); margin-bottom:16px;">
+        <h3 style="color:#ef4444">👎 缺点</h3>
+        <ul>
+          <li><strong>入门门槛高得吓人。</strong>安装 lark-cli → 创建飞书应用 → 配置 OAuth Scope → 发布应用版本 → 运行认证脚本 → 还要理解 User/Bot 身份差异。对非开发者来说，光配置就可能要折腾一两个小时。对比 Humanizer 的"装上就用"，这个 Skill 的上手成本是天花板级别。</li>
+          <li><strong>权限配置是黑洞。</strong>30+ 个 OAuth Scope，文档里说了"添加权限后必须发布新版本再重新获取 Token"，但实际操作中报错信息模糊。返回空结果也不会告诉你是权限问题还是查询条件问题。调试体验很差。</li>
+          <li><strong>强依赖飞书生态。</strong>如果你的公司用钉钉或企业微信，这个 Skill 完全无用。而且飞书 API 本身有版本更新、字段变更的风险，CLI 不一定能及时跟进。这是平台绑定的固有风险。</li>
+          <li><strong>缺少真实工作流示例。</strong>每个域的文档都有命令示例，但缺少<strong>跨域组合场景</strong>。比如"查今天日程 → 给缺席者发消息 → 更新任务状态 → 记录到表格"这种端到端自动化 demo 一个都没有。200+ 命令是零件，但没给蓝图。</li>
+          <li><strong>scripts 目录只有配置脚本。</strong>和小红书 Skill（13个Shell脚本）或 Content Factory（8个 Prompt 模板）相比，这个 Skill 没有任何预制的业务自动化脚本。用户拿到的是"全能工具箱"而不是"拿来就用的方案"。</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background:rgba(251,191,36,0.05); border-color:rgba(251,191,36,0.3);">
+        <h3 style="color:var(--yellow)">💡 谁最该用？</h3>
+        <p style="margin-top:8px;">
+          <span class="badge badge-must">最佳人选</span> <strong>飞书重度用户 + 有技术背景（或有 AI 助手帮忙配置）</strong>——这个 Skill 能把你每天在飞书上的大量重复操作全部自动化。一旦配好，效率提升是指数级的。<br><br>
+          <span class="badge badge-pro">进阶场景</span> <strong>需要飞书数据自动化的团队</strong>——多维表格 + 消息通知 + 任务管理的组合，能做出非常强大的内部工具流。<br><br>
+          <span class="badge badge-content">不建议</span> <strong>非飞书用户、纯内容创作者、技术恐惧症</strong>——配置成本太高，对你的工作流几乎没有帮助。老实用飞书客户端就好。<br><br>
+          <strong>Buddy 的话</strong>：这是一个<strong>"天花板很高、地板也很高"</strong>的 Skill。200+ 命令的能力上限很恐怖，但大多数人可能连安装都完成不了。如果你的日常工作在飞书上，而且你（或你的 AI 助手）有能力搞定配置，那么这绝对值得投入时间。否则，先装个 Humanizer 解决眼前问题吧。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 互动区 -->
+  <div class="interact-section">
+    <h3>📝 学习心得 & 互动</h3>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">看完这个 Skill，有什么想法？可以记录在这里（保存在本地）</p>
+    <textarea id="notes" placeholder="写点学习心得...&#10;&#10;比如：我们团队用飞书吗？哪些飞书操作最想自动化？配置门槛能接受吗？"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveNotes()">💾 保存心得</button>
+      <button class="btn btn-outline" onclick="clearNotes()">清空</button>
+    </div>
+    <div id="save-status" style="margin-top:8px; font-size:13px; color:var(--green); display:none;">✅ 已保存到本地</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>Skill 日报 — 每天拆解一个 AI 技能 | Powered by Buddy ⚡</p>
+  <p style="margin-top:4px;"><a href="index.html" style="color:var(--blue); text-decoration:none;">← 返回日报首页</a></p>
+</div>
+
+<script>
+function saveNotes() {
+  const notes = document.getElementById('notes').value;
+  localStorage.setItem('skill-daily-007-notes', notes);
+  const status = document.getElementById('save-status');
+  status.style.display = 'block';
+  setTimeout(() => status.style.display = 'none', 2000);
+}
+function clearNotes() {
+  document.getElementById('notes').value = '';
+  localStorage.removeItem('skill-daily-007-notes');
+}
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('skill-daily-007-notes');
+  if (saved) document.getElementById('notes').value = saved;
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('sourceModal').classList.remove('active');
+});
+</script>
+
+<!-- Source Modal -->
+<div class="modal-overlay" id="sourceModal" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>📄 SKILL.md 原文（Lark Unified）</h3>
+      <button class="modal-close" onclick="document.getElementById('sourceModal').classList.remove('active')">&times;</button>
+    </div>
+    <div class="modal-body">---
+name: lark-unified
+description: "Unified Lark/Feishu CLI suite covering messaging, documents, collaboration,
+  scheduling, and more. Provides 200+ commands across 11 business domains including
+  instant messaging (IM), cloud documents, spreadsheets, base/tables, calendars, mail,
+  tasks, wikis, video conferences, and custom integrations."
+description_zh: "飞书/Lark 全能套件（消息、文档、表格、日历、任务、Wiki 等 11 个业务域）"
+description_en: "Lark/Feishu unified CLI: messaging, docs, sheets, calendar, tasks, wiki &amp; more"
+allowed-tools: Bash, Read
+---
+
+# Lark Unified
+
+Lark (飞书) is a comprehensive collaboration platform combining messaging, documents,
+spreadsheets, tables, calendars, and more. This skill provides unified access to the
+Lark CLI (lark-cli), a production-grade command-line tool with 200+ commands across
+11 integrated business domains, along with 19 AI Agent-optimized skills.
+
+## SETUP RULES
+
+FORBIDDEN — never run these commands:
+- lark-cli config init --new
+- lark-cli config init (interactive)
+- lark-cli config set-default
+
+REQUIRED setup procedure:
+1. Install: lark-cli --version || npm install -g @larksuite/cli
+2. Check config: lark-cli config show | grep "app_id"
+3. If not configured, run lark_setup.py
+
+## Core Capability Domains
+
+### Instant Messaging (lark-im)
+Send/receive messages, search chat history, manage groups, download files.
+Shortcuts: +messages-send, +messages-search, +chat-messages-list, +chat-create
+
+### Cloud Documents (lark-doc)
+Create and edit documents, insert media, manage permissions.
+Shortcuts: +documents-create, +documents-list
+
+### Spreadsheets (lark-sheets)
+Read/write/append to spreadsheets, query data.
+Shortcuts: +spreadsheets-read, +spreadsheets-append, +spreadsheets-find
+
+### Base &amp; Multi-Dimensional Tables (lark-base)
+Query and manage records, fields, views, dashboards, workflows.
+Shortcuts: +tables-records-list, +tables-records-create, +fields-list
+
+### Calendar (lark-calendar)
+Query events, check availability, suggest meeting times.
+Shortcuts: +calendars-list, +events-list, +events-search-freebusy
+
+### Tasks &amp; To-Do (lark-task)
+Create tasks, organize into lists, manage reminders.
+Shortcuts: +tasks-create, +tasks-list, +task-lists-list
+
+### Mail (lark-mail)
+Compose emails, manage drafts, search messages.
+Shortcuts: +messages-send, +messages-search, +drafts-create
+
+### Wiki &amp; Knowledge Spaces (lark-wiki)
+Create knowledge spaces, organize pages, manage permissions.
+Shortcuts: +spaces-create, +wiki-pages-create, +wiki-pages-list
+
+### Cloud Drive &amp; Files (lark-drive)
+Upload/download files, manage permissions, share links.
+Shortcuts: +files-upload, +files-download
+
+### Video Conference &amp; Meetings (lark-vc)
+Search meetings, retrieve recordings and notes.
+
+### Contacts &amp; Directory (lark-contact)
+Search users, fetch profiles, query directory.
+
+## Identity: User vs Bot
+
+- --as user: Runs as authenticated user (user_access_token)
+- --as bot: Runs as app bot (tenant_access_token)
+
+Same API may succeed with one identity and fail with the other.
+
+## CLI Usage
+
+lark-cli &lt;domain&gt; &lt;resource&gt; &lt;method&gt; [flags]
+lark-cli &lt;domain&gt; +&lt;shortcut&gt; [flags]  # shortcuts preferred
+
+Default identity: --as bot. Use --as user for personal operations.
+
+## References
+
+Each domain has a detailed reference file in references/ directory.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
