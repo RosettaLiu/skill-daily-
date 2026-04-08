@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill 日报 #010 — Prompt Engineering Expert 提示词工程专家</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --card: #1a1a2e;
+    --card2: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --text: #e0e0e0;
+    --text2: #a0a0a0;
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+    --orange: #fb923c;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 60px 24px 40px;
+    text-align: center;
+    border-bottom: 3px solid var(--accent);
+  }
+  .hero .issue { color: var(--accent); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 8px; }
+  .hero .subtitle { color: var(--text2); font-size: 18px; margin-bottom: 20px; }
+  .hero .tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .hero .tag { background: rgba(233,69,96,0.2); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+  .meta-bar {
+    display: flex; justify-content: center; gap: 32px; padding: 16px; background: var(--card);
+    font-size: 14px; color: var(--text2); border-bottom: 1px solid #333; flex-wrap: wrap;
+  }
+  .meta-bar span { display: flex; align-items: center; gap: 6px; }
+  .container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+  .action-bar { display: flex; justify-content: center; gap: 12px; padding: 16px; background: rgba(15,52,96,0.3); flex-wrap: wrap; }
+  .action-btn {
+    padding: 8px 20px; border-radius: 8px; border: 1px solid var(--accent);
+    background: transparent; color: var(--accent); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block;
+  }
+  .action-btn:hover { background: var(--accent); color: #fff; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--card); border: 1px solid #444; border-radius: 16px;
+    width: 90%; max-width: 900px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px; border-bottom: 1px solid #333;
+  }
+  .modal-header h3 { font-size: 18px; }
+  .modal-close { background: none; border: none; color: var(--text2); font-size: 28px; cursor: pointer; }
+  .modal-close:hover { color: var(--accent); }
+  .modal-body {
+    padding: 24px; overflow-y: auto; font-size: 14px; line-height: 1.8; color: var(--text2);
+    font-family: 'Consolas', 'Monaco', monospace; white-space: pre-wrap; word-break: break-word;
+  }
+
+  .section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 22px; font-weight: 700; margin-bottom: 16px;
+    padding-left: 16px; border-left: 4px solid var(--accent);
+  }
+
+  .card {
+    background: var(--card); border-radius: 12px; padding: 24px; margin-bottom: 16px;
+    border: 1px solid #2a2a4a;
+  }
+  .card h3 { color: var(--accent); font-size: 18px; margin-bottom: 12px; }
+  .card p, .card li { color: var(--text2); font-size: 15px; line-height: 1.8; }
+  .card ul { padding-left: 20px; }
+  .card li { margin-bottom: 6px; }
+
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(233,69,96,0.1), rgba(15,52,96,0.2));
+    border: 1px solid var(--accent);
+    border-radius: 12px; padding: 24px; margin-bottom: 16px;
+  }
+  .highlight-box h3 { color: #fff; }
+
+  /* Stats panel */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;
+  }
+  @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card {
+    background: var(--card); border-radius: 12px; padding: 16px; text-align: center;
+    border: 1px solid #2a2a4a;
+  }
+  .stat-num { font-size: 28px; font-weight: 800; color: var(--blue); }
+  .stat-label { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* Comparison */
+  .comparison {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0;
+  }
+  @media (max-width: 600px) { .comparison { grid-template-columns: 1fr; } }
+  .comp-before, .comp-after {
+    padding: 16px; border-radius: 8px; font-size: 14px; line-height: 1.7;
+  }
+  .comp-before { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); }
+  .comp-after { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); }
+  .comp-label { font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+  .comp-before .comp-label { color: #ef4444; }
+  .comp-after .comp-label { color: var(--green); }
+
+  /* Pattern list (collapsible) */
+  .pattern-list { counter-reset: pattern; }
+  .pattern-item {
+    background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 12px;
+    border: 1px solid #2a2a4a; cursor: pointer; transition: all 0.2s;
+  }
+  .pattern-item:hover { border-color: var(--accent); }
+  .pattern-header { display: flex; align-items: center; gap: 12px; }
+  .pattern-num {
+    background: var(--accent); color: #fff; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .pattern-name { font-size: 16px; font-weight: 600; flex: 1; }
+  .pattern-toggle { color: var(--text2); font-size: 20px; transition: transform 0.2s; }
+  .pattern-body { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #333; }
+  .pattern-item.open .pattern-body { display: block; }
+  .pattern-item.open .pattern-toggle { transform: rotate(180deg); }
+
+  /* Code blocks */
+  .code-block {
+    background: #0d0d1a; border: 1px solid #333; border-radius: 8px;
+    padding: 16px; margin: 12px 0; font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px; line-height: 1.6; color: var(--green); overflow-x: auto;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .code-block .comment { color: #666; }
+  .code-block .tag { color: var(--blue); background: none; padding: 0; border-radius: 0; font-size: 13px; }
+  .code-block .str { color: var(--yellow); }
+  .code-block .kw { color: var(--purple); }
+
+  /* Flow steps */
+  .flow-steps { display: flex; flex-direction: column; gap: 0; }
+  .flow-step { display: flex; gap: 16px; padding: 16px 0; }
+  .flow-dot {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; flex-shrink: 0;
+    background: var(--accent2); color: var(--blue); border: 2px solid var(--blue);
+  }
+  .flow-content h4 { font-size: 16px; margin-bottom: 4px; }
+  .flow-content p { font-size: 14px; color: var(--text2); }
+  .flow-arrow { text-align: center; color: var(--text2); font-size: 20px; margin: -8px 0; padding-left: 10px; }
+
+  /* Technique cards */
+  .technique-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0;
+  }
+  @media (max-width: 600px) { .technique-grid { grid-template-columns: 1fr; } }
+  .technique-card {
+    background: var(--card); border-radius: 12px; padding: 20px;
+    border: 1px solid #2a2a4a; transition: border-color 0.2s;
+  }
+  .technique-card:hover { border-color: var(--blue); }
+  .technique-card .tc-icon { font-size: 24px; margin-bottom: 8px; }
+  .technique-card .tc-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--blue); }
+  .technique-card .tc-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+  /* Ref links */
+  .ref-link {
+    display: block; background: var(--card2); border-radius: 8px; padding: 14px 18px;
+    margin-bottom: 8px; text-decoration: none; color: var(--text);
+    border: 1px solid #2a2a4a; transition: all 0.2s;
+  }
+  .ref-link:hover { border-color: var(--blue); }
+  .ref-link .ref-title { font-weight: 600; }
+  .ref-link .ref-desc { font-size: 13px; color: var(--text2); }
+
+  /* Verdict */
+  .verdict-box {
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    border: 2px solid var(--green); border-radius: 16px; padding: 32px; text-align: center;
+  }
+  .verdict-box h3 { color: var(--green); font-size: 24px; margin-bottom: 16px; }
+  .stars { font-size: 28px; margin-bottom: 12px; }
+
+  /* Interact */
+  .interact-section { margin-top: 40px; padding: 32px; background: var(--card); border-radius: 16px; border: 1px solid #2a2a4a; }
+  .interact-section h3 { color: var(--accent); margin-bottom: 16px; }
+  .interact-section textarea {
+    width: 100%; height: 100px; background: #0f0f0f; color: var(--text);
+    border: 1px solid #444; border-radius: 8px; padding: 12px; font-size: 14px;
+    resize: vertical; font-family: inherit;
+  }
+  .interact-section textarea:focus { outline: none; border-color: var(--accent); }
+  .btn-row { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 24px; border-radius: 8px; border: none; font-size: 14px;
+    cursor: pointer; font-weight: 600; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #d63851; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid #555; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .footer { text-align: center; padding: 40px 16px; color: var(--text2); font-size: 13px; border-top: 1px solid #222; margin-top: 40px; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .badge-easy { background: rgba(74,222,128,0.2); color: var(--green); }
+  .badge-content { background: rgba(251,191,36,0.2); color: var(--yellow); }
+  .badge-must { background: rgba(233,69,96,0.2); color: var(--accent); }
+  .badge-blue { background: rgba(96,165,250,0.2); color: var(--blue); }
+
+  /* Checklist */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { padding: 8px 0; border-bottom: 1px solid #222; font-size: 14px; color: var(--text2); }
+  .checklist li::before { content: "✅ "; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="issue">SKILL 日报 · 第 010 期 · 2026.04.08</div>
+  <h1>🎯 Prompt Engineering Expert</h1>
+  <div class="subtitle">提示词工程专家 — AI 时代的底层操作系统</div>
+  <div class="tags">
+    <span class="tag">AI 工具</span>
+    <span class="tag">提示词工程</span>
+    <span class="tag">效率提升</span>
+    <span class="tag">Skill 开发</span>
+    <span class="tag">v1.0.0</span>
+  </div>
+</div>
+
+<div class="meta-bar">
+  <span>📦 8 个文档文件</span>
+  <span>📄 7 大专业领域</span>
+  <span>🔧 10 个实战案例</span>
+  <span>⚡ 纯知识型，零配置</span>
+</div>
+
+<div class="action-bar">
+  <button class="action-btn" onclick="document.getElementById('sourceModal').classList.add('active')">📄 查看 SKILL.md 原文</button>
+  <a href="https://docs.claude.com" target="_blank" class="action-btn">🔗 Claude 官方文档</a>
+  <a href="https://www.promptingguide.ai" target="_blank" class="action-btn">🔗 Prompt Engineering Guide</a>
+</div>
+
+<div class="container">
+
+  <!-- 一句话概述 -->
+  <div class="section">
+    <div class="section-title">这个 Skill 是什么？</div>
+    <div class="highlight-box">
+      <h3>一句话：让 AI 深谙提示词工程的所有套路，从此帮你写、改、调优任何 Prompt。</h3>
+      <p style="margin-top:12px; color:var(--text2)">
+        这是一个<strong>纯知识型 Skill</strong>——没有脚本、没有 API，全靠 8 个精心编写的文档把提示词工程的方法论注入 AI 的"大脑"。涵盖 7 大专业领域、8 种核心能力、10 个实战案例、8 种常见故障诊断方案。装上后 AI 就变成了你的提示词教练，能分析你的烂 Prompt、生成新 Prompt、设计 Agent 指令、排查性能问题。
+      </p>
+    </div>
+  </div>
+
+  <!-- 数据面板 -->
+  <div class="section">
+    <div class="section-title">数据面板</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num">7</div>
+        <div class="stat-label">专业领域</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">8</div>
+        <div class="stat-label">核心能力</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">10</div>
+        <div class="stat-label">实战案例</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">8</div>
+        <div class="stat-label">故障诊断方案</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 为什么值得学 -->
+  <div class="section">
+    <div class="section-title">为什么值得学？</div>
+    <div class="card">
+      <p>提示词工程是 AI 时代的<strong>底层操作系统</strong>。你用的每一个 AI 工具、每一个 Agent、每一个 Skill——背后都是提示词在驱动。写好提示词的人和写不好的人，得到的结果可能差 10 倍。</p>
+      <ul style="margin-top:12px">
+        <li><span class="badge badge-must">必学</span> 所有 AI 用户——提示词是你和 AI 沟通的唯一语言，学好它等于给自己加 10x 杠杆</li>
+        <li><span class="badge badge-content">适用</span> Skill/Agent 开发者——System Prompt 设计、行为约束、测试框架全在这</li>
+        <li><span class="badge badge-easy">好学</span> 纯方法论，不需要编程基础，看例子就能上手</li>
+        <li><span class="badge badge-blue">进阶</span> 已有提示词经验的人——反模式识别和调试工作流能帮你突破瓶颈</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 核心四原则 -->
+  <div class="section">
+    <div class="section-title">核心理念：四大原则</div>
+    <div class="technique-grid">
+      <div class="technique-card">
+        <div class="tc-icon">🎯</div>
+        <div class="tc-title">Clarity 清晰</div>
+        <div class="tc-desc">显式目标、精准语言、具体示例、逻辑结构。说"我要什么"，不要让 AI 猜。</div>
+      </div>
+      <div class="technique-card">
+        <div class="tc-icon">✂️</div>
+        <div class="tc-title">Conciseness 简洁</div>
+        <div class="tc-desc">聚焦内容、消除冗余、渐进式披露、Token 效率。每个字都要有用。</div>
+      </div>
+      <div class="technique-card">
+        <div class="tc-icon">📐</div>
+        <div class="tc-title">Consistency 一致</div>
+        <div class="tc-desc">定义约束、指定格式、清晰准则、可复现结果。同一个 Prompt 出来的结果应该稳定。</div>
+      </div>
+      <div class="technique-card">
+        <div class="tc-icon">🧩</div>
+        <div class="tc-title">Completeness 完备</div>
+        <div class="tc-desc">充分上下文、边界情况、成功标准、错误处理。别假设 AI 什么都懂。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 七大技术 -->
+  <div class="section">
+    <div class="section-title">七大提示词技术（可折叠）</div>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">点击展开每个技术的详细说明和代码示例 👇</p>
+
+    <div class="pattern-list">
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">1</div>
+          <div class="pattern-name">Chain-of-Thought 链式思考</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>让 AI 一步一步推理，而不是直接给答案。适用于<strong>复杂推理、多步骤问题、需要可验证逻辑</strong>的场景。</p>
+          <div class="code-block"><span class="comment">// 基本结构</span>
+Let's think through this step by step:
+
+Step 1: <span class="str">[First logical step]</span>
+Step 2: <span class="str">[Second logical step]</span>
+Step 3: <span class="str">[Third logical step]</span>
+
+Therefore: <span class="str">[Conclusion]</span></div>
+          <p style="margin-top:12px"><strong>关键洞察：</strong>CoT 不只是让输出好看——它实际上<em>改变了 AI 的推理路径</em>，就像你考试时把演算过程写出来，正确率会比直接写答案高很多。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">2</div>
+          <div class="pattern-name">Few-Shot Learning 少样本学习</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>用例子教 AI 你要什么，比描述规则更直接。<strong>1-shot 适合简单任务，2-shot 适合中等复杂度，Multi-shot 适合复杂模式。</strong></p>
+          <div class="code-block"><span class="comment">// 情感分类 Few-Shot</span>
+Example 1: <span class="str">"Great product!"</span> → <span class="kw">Positive</span>
+Example 2: <span class="str">"Doesn't work well"</span> → <span class="kw">Negative</span>
+Example 3: <span class="str">"It's fine"</span> → <span class="kw">Neutral</span>
+
+Now classify: <span class="str">"Not bad"</span> →</div>
+          <p style="margin-top:12px"><strong>最佳实践：</strong>用多样化的例子、包含边界情况、按复杂度排序。例子选得好，效果比写一页规则还好。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">3</div>
+          <div class="pattern-name">XML Tags 结构化标签</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>用 XML 标签给 Prompt 加结构，<strong>让 AI 知道哪部分是目标、哪部分是约束、哪部分是格式要求</strong>。对复杂任务的输出一致性提升巨大。</p>
+          <div class="code-block"><span class="tag">&lt;task&gt;</span>
+  <span class="tag">&lt;objective&gt;</span><span class="str">What to accomplish</span><span class="tag">&lt;/objective&gt;</span>
+  <span class="tag">&lt;constraints&gt;</span><span class="str">Limitations and rules</span><span class="tag">&lt;/constraints&gt;</span>
+  <span class="tag">&lt;format&gt;</span><span class="str">Expected output format</span><span class="tag">&lt;/format&gt;</span>
+<span class="tag">&lt;/task&gt;</span></div>
+          <p style="margin-top:12px"><strong>为什么有效：</strong>XML 标签给 AI 提供了"语义边界"，它能更精准地理解每段文字的角色。对 Claude 特别有效。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">4</div>
+          <div class="pattern-name">Role-Based Prompting 角色扮演</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>给 AI 一个具体身份——不是笼统的"当个专家"，而是<strong>"你是一个有10年经验的 SaaS 产品经理"</strong>。越具体，AI 的输出就越聚焦。</p>
+          <div class="code-block"><span class="kw">You are a</span> senior management consultant <span class="kw">with</span> 20 years of experience
+in business strategy and organizational transformation.
+
+<span class="kw">Your responsibilities:</span>
+- <span class="str">Analyze business challenges</span>
+- <span class="str">Recommend data-driven solutions</span>
+- <span class="str">Identify implementation risks</span>
+
+<span class="kw">Your task:</span> <span class="str">[Specific task]</span></div>
+          <div class="comparison">
+            <div class="comp-before"><div class="comp-label">❌ 模糊角色</div>"Act like an expert and help me."</div>
+            <div class="comp-after"><div class="comp-label">✅ 精准角色</div>"You are a senior product manager with 10 years of experience in SaaS companies. Your task is to..."</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">5</div>
+          <div class="pattern-name">Prefilling 预填充响应</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>直接帮 AI "开头"——<strong>告诉它输出的前几行应该长什么样</strong>，后面它就会自动跟着你的格式走。</p>
+          <div class="code-block"><span class="comment">// 预填充结构化分析</span>
+<span class="kw">Claude's response should start:</span>
+<span class="str">"Here's my analysis of this market opportunity:
+
+Market Size: [Analysis]
+Growth Potential: [Analysis]  
+Competitive Landscape: [Analysis]"</span></div>
+          <p style="margin-top:12px"><strong>核心价值：</strong>确保格式、设定语气、引导推理方向。相当于"锚定"了 AI 的输出起点。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">6</div>
+          <div class="pattern-name">Prompt Chaining 提示词链</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>把复杂任务拆成<strong>多个串行的子 Prompt</strong>，前一步的输出作为后一步的输入。像流水线一样处理。</p>
+          <div class="code-block"><span class="kw">Prompt 1:</span> Extract 提取信息
+       ↓
+<span class="kw">Output 1:</span> Structured JSON
+       ↓
+<span class="kw">Prompt 2:</span> Analyze 分析数据
+       ↓
+<span class="kw">Output 2:</span> Analysis report
+       ↓
+<span class="kw">Prompt 3:</span> Synthesize 生成摘要
+       ↓
+<span class="kw">Final:</span> Executive summary</div>
+          <p style="margin-top:12px"><strong>什么时候用：</strong>任务涉及"先提取、再分析、最后总结"这种多步骤逻辑时。每一步都能独立验证，出错了只需要重跑一步。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num">7</div>
+          <div class="pattern-name">Context Management 上下文管理</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>AI 的上下文窗口是有限的。<strong>塞太多信息，重点反而被淹没；信息太少，AI 又会瞎猜。</strong>关键是找到平衡点。</p>
+          <div class="code-block"><span class="comment">// 渐进式披露（Progressive Disclosure）</span>
+<span class="kw">Level 1:</span> High-level overview  <span class="comment">← 先给大方向</span>
+<span class="kw">Level 2:</span> Key components       <span class="comment">← 再给关键组件</span>
+<span class="kw">Level 3:</span> Specific details     <span class="comment">← 最后给细节</span>
+
+<span class="comment">// 条件信息</span>
+<span class="kw">If</span> [condition], <span class="kw">include</span> [information]
+<span class="kw">Else</span>, <span class="kw">skip</span> [information]</div>
+          <p style="margin-top:12px"><strong>实操建议：</strong>只放必要上下文、层级化组织、用引用代替全文、先概述后细节。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 八大故障诊断 -->
+  <div class="section">
+    <div class="section-title">八大常见故障 + 修复方案（可折叠）</div>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">Prompt 不好使？对号入座找解法 👇</p>
+
+    <div class="pattern-list">
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num" style="background:var(--orange)">!</div>
+          <div class="pattern-name">输出不一致（同一个 Prompt 每次结果不同）</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p><strong>根因：</strong>指令含糊、缺少约束、示例不足、没定义成功标准</p>
+          <div class="comparison">
+            <div class="comp-before"><div class="comp-label">❌ BEFORE</div>"Summarize this article"</div>
+            <div class="comp-after"><div class="comp-label">✅ AFTER</div>"Summarize this article in exactly 3 bullet points, each 1-2 sentences. Focus on key findings and implications."</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num" style="background:var(--orange)">!</div>
+          <div class="pattern-name">AI 幻觉（自信地编造虚假信息）</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p><strong>根因：</strong>Prompt 鼓励推测、缺乏事实锚定、上下文不足</p>
+          <div class="comparison">
+            <div class="comp-before"><div class="comp-label">❌ BEFORE</div>"What will happen to the market next year?"</div>
+            <div class="comp-after"><div class="comp-label">✅ AFTER</div>"Based on current market data, what are 3 possible scenarios for next year? For each, explain your reasoning and note your confidence level (high/medium/low)."</div>
+          </div>
+          <p style="margin-top:12px"><strong>杀手级技巧：</strong>让 AI 自问"What don't you know?"——强制它暴露盲区。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num" style="background:var(--orange)">!</div>
+          <div class="pattern-name">回答空泛（说了等于没说）</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p><strong>根因：</strong>Prompt 太笼统、没给上下文、目标不明确</p>
+          <div class="comparison">
+            <div class="comp-before"><div class="comp-label">❌ BEFORE</div>"How can I improve my business?"</div>
+            <div class="comp-after"><div class="comp-label">✅ AFTER</div>"I run a SaaS company with $2M ARR. We're losing customers to competitors. What are 3 specific strategies to improve retention? For each, explain implementation steps and expected impact."</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num" style="background:var(--orange)">!</div>
+          <div class="pattern-name">输出太长或太短</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p><strong>修复：</strong>明确指定字数/句数、定义范围、给出格式模板。</p>
+          <div class="comparison">
+            <div class="comp-before"><div class="comp-label">❌ BEFORE</div>"Explain machine learning"</div>
+            <div class="comp-after"><div class="comp-label">✅ AFTER</div>"Explain machine learning in 2-3 paragraphs for someone with no technical background. Focus on practical applications, not theory."</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num" style="background:var(--orange)">!</div>
+          <div class="pattern-name">格式不对 · AI 拒绝回答 · Prompt 太长 · 无法泛化</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <ul>
+            <li><strong>格式不对：</strong>给出精确的格式示例（JSON、表格等），用 XML 标签结构化</li>
+            <li><strong>AI 拒绝：</strong>说明合法用途、提供上下文、换个问法</li>
+            <li><strong>Prompt 太长：</strong>删除不必要的上下文、用引用代替全文、渐进式披露</li>
+            <li><strong>无法泛化：</strong>用变量替换硬编码值、处理多种输入格式、加入容错机制</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 反模式展示 -->
+  <div class="section">
+    <div class="section-title">反模式 vs 正确姿势</div>
+    <div class="card">
+      <h3>三组经典对比</h3>
+
+      <div class="comparison">
+        <div class="comp-before"><div class="comp-label">❌ 模糊链式</div>"Analyze this, then summarize it, then give me insights."</div>
+        <div class="comp-after"><div class="comp-label">✅ 清晰链式</div>"Step 1: Extract key metrics from the data<br>Step 2: Compare to industry benchmarks<br>Step 3: Identify top 3 opportunities<br>Step 4: Recommend prioritized actions"</div>
+      </div>
+
+      <div class="comparison">
+        <div class="comp-before"><div class="comp-label">❌ 模糊格式</div>"Give me the results in a nice format."</div>
+        <div class="comp-after"><div class="comp-label">✅ 精确格式</div>"Format as a table with columns: Metric, Current, Target, Gap"</div>
+      </div>
+
+      <div class="comparison">
+        <div class="comp-before"><div class="comp-label">❌ 低质量 Prompt</div>"Analyze this data and tell me what you think about it. Make it good."</div>
+        <div class="comp-after"><div class="comp-label">✅ 高质量 Prompt</div>"Analyze this sales data to identify:<br>1. Top 3 performing products (by revenue)<br>2. Seasonal trends (month-over-month changes)<br>3. Customer segments with highest LTV<br><br>Format: Executive summary + Key metrics table + Actionable recommendations"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 工作流程 -->
+  <div class="section">
+    <div class="section-title">Prompt 开发工作流</div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-dot">1</div>
+        <div class="flow-content">
+          <h4>定义成功标准</h4>
+          <p>先搞清楚"好的输出长什么样"——可度量、可测试、有明确的通过/失败标准</p>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-dot">2</div>
+        <div class="flow-content">
+          <h4>写初版 Prompt</h4>
+          <p>用清晰的结构把目标、约束、格式、示例都写进去</p>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-dot">3</div>
+        <div class="flow-content">
+          <h4>多样化测试</h4>
+          <p>正常路径 + 边界情况 + 错误输入 + 压力测试</p>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-dot">4</div>
+        <div class="flow-content">
+          <h4>分析失败案例</h4>
+          <p>为什么失败？是指令模糊、上下文不足、还是约束冲突？</p>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-dot">5</div>
+        <div class="flow-content">
+          <h4>迭代优化</h4>
+          <p>修改 → 测试 → 验证 → 记录变更。循环直到满意</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prompt 质量检查清单 -->
+  <div class="section">
+    <div class="section-title">Prompt 质量检查清单</div>
+    <div class="card">
+      <h3>部署前必查 10 项</h3>
+      <ul class="checklist">
+        <li>目标是否 crystal clear？</li>
+        <li>指令是否足够具体（没有"Make it good"之类的废话）？</li>
+        <li>输出格式是否明确指定？</li>
+        <li>是否提供了示例？</li>
+        <li>边界情况是否有处理？</li>
+        <li>是否用多种输入测试过？</li>
+        <li>输出一致性是否够高？</li>
+        <li>Token 用量是否优化过？</li>
+        <li>错误处理逻辑是否清晰？</li>
+        <li>文档是否完整（别人看得懂）？</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 实战案例精选 -->
+  <div class="section">
+    <div class="section-title">实战案例精选（可折叠）</div>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">从 10 个案例中精选 3 个最有启发性的 👇</p>
+
+    <div class="pattern-list">
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num" style="background:var(--blue)">A</div>
+          <div class="pattern-name">案例：XML 结构化营销文案生成器</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>这个案例把 XML 标签的优势发挥到了极致——把元数据、指令、约束、格式、示例全部用标签隔离，AI 理解起来毫不含糊：</p>
+          <div class="code-block"><span class="tag">&lt;prompt&gt;</span>
+  <span class="tag">&lt;metadata&gt;</span>
+    <span class="tag">&lt;purpose&gt;</span><span class="str">Generate marketing copy for SaaS products</span><span class="tag">&lt;/purpose&gt;</span>
+    <span class="tag">&lt;target_audience&gt;</span><span class="str">B2B decision makers</span><span class="tag">&lt;/target_audience&gt;</span>
+  <span class="tag">&lt;/metadata&gt;</span>
+  <span class="tag">&lt;constraints&gt;</span>
+    <span class="tag">&lt;max_length&gt;</span><span class="str">150 words</span><span class="tag">&lt;/max_length&gt;</span>
+    <span class="tag">&lt;tone&gt;</span><span class="str">Professional but approachable</span><span class="tag">&lt;/tone&gt;</span>
+    <span class="tag">&lt;avoid&gt;</span><span class="str">Jargon, hyperbole, false claims</span><span class="tag">&lt;/avoid&gt;</span>
+  <span class="tag">&lt;/constraints&gt;</span>
+<span class="tag">&lt;/prompt&gt;</span></div>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num" style="background:var(--blue)">B</div>
+          <div class="pattern-name">案例：Data Analysis Agent 定制指令</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>完美示范了 Agent 指令该怎么写——角色 + Do's/Don'ts + 输出格式 + 范围边界，四件套齐全：</p>
+          <div class="code-block"><span class="kw">## Role</span>
+Expert financial data analyst
+
+<span class="kw">## Do's</span>
+- Verify data sources before analysis
+- Provide confidence levels for predictions
+- Highlight assumptions and limitations
+
+<span class="kw">## Don'ts</span>
+- Don't predict beyond 12 months without caveats
+- Don't present correlation as causation
+- Don't skip uncertainty quantification
+
+<span class="kw">## Output Format</span>
+1. Executive Summary (2-3 sentences)
+2. Key Findings (bullet points)
+3. Detailed Analysis
+4. Limitations and Caveats
+5. Recommendations</div>
+          <p style="margin-top:12px"><strong>关键学习：</strong>Don'ts 比 Do's 更重要。定义好不该做什么，AI 的犯错空间就小很多。</p>
+        </div>
+      </div>
+
+      <div class="pattern-item" onclick="this.classList.toggle('open')">
+        <div class="pattern-header">
+          <div class="pattern-num" style="background:var(--blue)">C</div>
+          <div class="pattern-name">案例：Prompt 测试框架</div>
+          <div class="pattern-toggle">▼</div>
+        </div>
+        <div class="pattern-body">
+          <p>这个测试框架是整个 Skill 最被低估的部分。大多数人写完 Prompt 就直接用了，从不做系统性测试。</p>
+          <div class="code-block"><span class="kw">## Test Case 1: Happy Path</span>
+Input: <span class="str">[Standard, well-formed input]</span>
+Expected: <span class="str">[Specific output]</span>
+Criteria: <span class="str">[Measurable]</span>
+
+<span class="kw">## Test Case 2: Ambiguous Input</span>
+Input: <span class="str">[Unclear input]</span>
+Expected: <span class="str">[Should ask for clarification]</span>
+
+<span class="kw">## Test Case 3: Error Handling</span>
+Input: <span class="str">[Invalid input]</span>
+Expected: <span class="str">[Helpful error message]</span>
+
+<span class="kw">## Regression Test</span>
+Input: <span class="str">[Previous failing case]</span>
+Expected: <span class="str">[Now handles correctly]</span></div>
+          <p style="margin-top:12px"><strong>辣评：</strong>如果每个用 AI 的人都用这个框架测一遍自己的 Prompt，AI 输出质量全球平均能提高 3 倍。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Skill 文件架构 -->
+  <div class="section">
+    <div class="section-title">Skill 文件架构全景</div>
+    <div class="card">
+      <div class="code-block" style="color: var(--text2);">prompt-engineering-expert/
+├── <span class="kw">SKILL.md</span>         <span class="comment">← 元数据：名称+描述+能力清单</span>
+├── <span class="kw">CLAUDE.md</span>        <span class="comment">← 主指令：7大领域详细说明</span>
+├── <span class="kw">README.md</span>        <span class="comment">← 用户指南：How-to + Quick Start</span>
+├── <span class="kw">INDEX.md</span>         <span class="comment">← 完整索引：导航 + 学习路径</span>
+├── <span class="kw">SUMMARY.md</span>       <span class="comment">← 总结概述</span>
+├── <span class="kw">START_HERE.md</span>    <span class="comment">← 入门引导</span>
+├── docs/
+│   ├── <span class="str">BEST_PRACTICES.md</span>  <span class="comment">← 280行最佳实践（核心参考）</span>
+│   ├── <span class="str">TECHNIQUES.md</span>      <span class="comment">← 493行高级技术详解</span>
+│   └── <span class="str">TROUBLESHOOTING.md</span> <span class="comment">← 340行故障排查手册</span>
+└── examples/
+    └── <span class="str">EXAMPLES.md</span>        <span class="comment">← 315行实战案例（10个完整示例）</span></div>
+    </div>
+  </div>
+
+  <!-- 参考资料 -->
+  <div class="section">
+    <div class="section-title">参考资料与背景</div>
+    <a href="https://docs.claude.com" target="_blank" class="ref-link">
+      <div class="ref-title">📖 Claude 官方文档</div>
+      <div class="ref-desc">Anthropic 官方的 Claude 使用指南，提示词最佳实践的权威来源</div>
+    </a>
+    <a href="https://www.anthropic.com/blog" target="_blank" class="ref-link">
+      <div class="ref-title">📰 Anthropic Blog</div>
+      <div class="ref-desc">Claude 背后公司的技术博客，常有提示词工程的深度文章</div>
+    </a>
+    <a href="https://github.com/anthropics/claude-cookbooks" target="_blank" class="ref-link">
+      <div class="ref-title">📦 Claude Cookbooks</div>
+      <div class="ref-desc">官方实战食谱——各种场景的 Prompt 模板和最佳实践</div>
+    </a>
+    <a href="https://www.promptingguide.ai" target="_blank" class="ref-link">
+      <div class="ref-title">🎓 Prompt Engineering Guide</div>
+      <div class="ref-desc">社区维护的提示词工程百科全书，覆盖所有主流 LLM</div>
+    </a>
+  </div>
+
+  <!-- 辣评 -->
+  <div class="section">
+    <div class="section-title">Buddy 辣评 🌶️</div>
+    <div class="verdict-box" style="text-align:left; border-color: var(--accent);">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div class="stars">⭐⭐⭐✨</div>
+        <h3 style="color:var(--yellow)">3.5 星 — 教科书级方法论，但缺少灵魂</h3>
+      </div>
+
+      <div class="card" style="background:rgba(74,222,128,0.05); border-color:rgba(74,222,128,0.3); margin-bottom:16px;">
+        <h3 style="color:var(--green)">👍 优点</h3>
+        <ul>
+          <li><strong>知识体系完整到令人发指。</strong>7 大领域 × 8 种能力 × 10 个案例 × 8 种故障诊断 × 质量检查清单 × 学习路径分级（初/中/高）。作为"提示词工程参考手册"堪称满分。如果 Prompt Engineering 有考试，抱着这个 Skill 复习就够了。</li>
+          <li><strong>Before/After 对比是杀手级内容。</strong>每个反模式都有"烂 Prompt → 好 Prompt"的对比，一目了然。这比空讲理论有用 100 倍。特别是"Analyze this data and tell me what you think about it. Make it good."这种 Before 示例，太真实了——90%的人就是这么写的。</li>
+          <li><strong>故障排查手册极其实用。</strong>8 种常见问题 + 根因分析 + 具体修复方案 + Quick Reference 表格，调试工作流 5 步法。这是唯一一个我见过的、把 Prompt Debugging 系统化的 Skill。</li>
+          <li><strong>文件组织堪称 Skill 开发教范。</strong>SKILL.md → CLAUDE.md → INDEX.md → docs/ → examples/，层次清晰、渐进式披露做得教科书级。自己就是自己方法论的最佳实践。</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.3); margin-bottom:16px;">
+        <h3 style="color:#ef4444">👎 缺点</h3>
+        <ul>
+          <li><strong>严重的"维基百科综合征"。</strong>通篇在描述"什么是 CoT"、"什么是 Few-Shot"这些基础概念，但实战中的 tricky 部分几乎没涉及。比如：CoT 什么时候反而会降低性能？Few-Shot 的例子选错了会怎样？XML 标签嵌套太深 AI 会乱吗？这些真正用起来才会遇到的坑，一个都没讲。</li>
+          <li><strong>零自动化。</strong>号称是提示词工程"专家"，但连一个自动分析 Prompt 质量的脚本都没有。Content Repurposer 好歹有 7 个 shell 脚本（虽然是 mock），ArXiv Reader 有完整的 Python 流水线。这个 Skill 纯靠 AI 读文档后"内化"知识——效果完全取决于 AI 当天的发挥。</li>
+          <li><strong>内容高度重复。</strong>SKILL.md、CLAUDE.md、README.md、INDEX.md、SUMMARY.md、START_HERE.md 这 6 个文件，核心内容重叠率超过 60%。同样的"7 大领域"、"8 种能力"、"9 个用例"在不同文件里反复出现。这不是"渐进式披露"，是复制粘贴。真正不重复的干货集中在 BEST_PRACTICES.md、TECHNIQUES.md 和 EXAMPLES.md 三个文件里。</li>
+          <li><strong>完全以 Claude 为中心。</strong>所有技术讲解、所有示例都针对 Claude/Anthropic 生态。但 Prompt Engineering 不是只有 Claude 一家——GPT 对 XML 标签的响应就不如 Claude、Prefilling 在 OpenAI API 里写法完全不同、不同模型的 CoT 触发方式也有差异。这个"专家"的知识面太窄了。</li>
+          <li><strong>中文场景缺失。</strong>所有示例都是英文。中文 Prompt 的特殊挑战（比如分词歧义、语序灵活性、敬语影响语气控制）零涉及。</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background:rgba(251,191,36,0.05); border-color:rgba(251,191,36,0.3);">
+        <h3 style="color:var(--yellow)">💡 谁最该用？</h3>
+        <p style="margin-top:8px;">
+          <strong>AI 初学者和中级用户</strong>——如果你还在写"帮我做 XXX"这种 Prompt，这个 Skill 能让你的提示词水平从 20 分直接跳到 70 分。TECHNIQUES.md 和 EXAMPLES.md 值得反复看。<br><br>
+          <strong>Skill/Agent 开发者</strong>——BEST_PRACTICES.md 里关于 Skill 文件结构、命名规范、渐进式披露的建议确实很实用。可以当作 Skill 开发的 style guide。<br><br>
+          <strong>高级用户请绕行</strong>——如果你已经能熟练使用 CoT + XML + Few-Shot 组合拳，这个 Skill 不会给你带来任何新东西。它在"深度"这个维度上严重不足。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 互动区 -->
+  <div class="interact-section">
+    <h3>📝 学习心得 & 互动</h3>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px">看完这个 Skill，有什么想法？可以记录在这里（保存在本地）</p>
+    <textarea id="notes" placeholder="写点学习心得...&#10;&#10;比如：我以前写 Prompt 最大的毛病是什么？哪个技术马上能用到工作里？"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveNotes()">💾 保存心得</button>
+      <button class="btn btn-outline" onclick="clearNotes()">清空</button>
+    </div>
+    <div id="save-status" style="margin-top:8px; font-size:13px; color:var(--green); display:none;">✅ 已保存到本地</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>Skill 日报 — 每天拆解一个 AI 技能 | Powered by Buddy ⚡</p>
+  <p style="margin-top:4px;"><a href="index.html" style="color:var(--blue); text-decoration:none;">← 返回首页查看全部期数</a></p>
+</div>
+
+<script>
+function saveNotes() {
+  const notes = document.getElementById('notes').value;
+  localStorage.setItem('skill-daily-010-notes', notes);
+  const status = document.getElementById('save-status');
+  status.style.display = 'block';
+  setTimeout(() => status.style.display = 'none', 2000);
+}
+function clearNotes() {
+  document.getElementById('notes').value = '';
+  localStorage.removeItem('skill-daily-010-notes');
+}
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('skill-daily-010-notes');
+  if (saved) document.getElementById('notes').value = saved;
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('sourceModal').classList.remove('active');
+});
+</script>
+
+<!-- Source Modal -->
+<div class="modal-overlay" id="sourceModal" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>📄 SKILL.md 原文（Prompt Engineering Expert v1.0.0）</h3>
+      <button class="modal-close" onclick="document.getElementById('sourceModal').classList.remove('active')">&times;</button>
+    </div>
+    <div class="modal-body">---
+name: prompt-engineering-expert
+description: Advanced expert in prompt engineering, custom instructions design, and prompt optimization for AI agents
+---
+
+# Prompt Engineering Expert Skill
+
+This skill equips Claude with deep expertise in prompt engineering, custom instructions design, and prompt optimization. It provides comprehensive guidance on crafting effective AI prompts, designing agent instructions, and iteratively improving prompt performance.
+
+## Capabilities
+
+- **Prompt Writing Best Practices**: Expert guidance on clear, direct prompts with proper structure and formatting
+- **Custom Instructions Design**: Creating effective system prompts and custom instructions for AI agents
+- **Prompt Optimization**: Analyzing, refining, and improving existing prompts for better performance
+- **Advanced Techniques**: Chain-of-thought prompting, few-shot examples, XML tags, role-based prompting
+- **Evaluation &amp; Testing**: Developing test cases and success criteria for prompt evaluation
+- **Anti-patterns Recognition**: Identifying and correcting common prompt engineering mistakes
+- **Context Management**: Optimizing token usage and context window management
+- **Multimodal Prompting**: Guidance on vision, embeddings, and file-based prompts
+
+## Use Cases
+
+- Refining vague or ineffective prompts
+- Creating specialized system prompts for specific domains
+- Designing custom instructions for AI agents and skills
+- Optimizing prompts for consistency and reliability
+- Teaching prompt engineering best practices
+- Debugging prompt performance issues
+- Creating prompt templates for reusable workflows
+
+---
+
+## Full Skill Contents (8 files):
+
+### CLAUDE.md — Main Instructions
+- 7 Core Expertise Areas (101 lines)
+  1. Prompt Writing Best Practices
+  2. Advanced Prompt Engineering Techniques
+  3. Custom Instructions &amp; System Prompts
+  4. Prompt Optimization &amp; Refinement
+  5. Anti-Patterns &amp; Common Mistakes
+  6. Evaluation &amp; Testing
+  7. Multimodal &amp; Advanced Prompting
+- 8 Key Capabilities
+- 9 Use Cases
+- Skill Limitations
+- Integration Notes
+
+### docs/BEST_PRACTICES.md — 280 lines
+- Core Principles (Clarity, Conciseness, Degrees of Freedom)
+- Advanced Techniques (CoT, Few-Shot, XML, Role-Based, Prefilling, Chaining)
+- Custom Instructions &amp; System Prompts
+- Skill Structure Best Practices (Naming, Descriptions, File Structure)
+- Evaluation &amp; Testing
+- Anti-Patterns
+- Workflows and Feedback Loops
+- Content Guidelines
+- Multimodal Prompting
+- Skill Development Workflow
+- Complete Checklist
+
+### docs/TECHNIQUES.md — 493 lines
+- Chain-of-Thought Prompting (with examples)
+- Few-Shot Learning (1-shot, 2-shot, multi-shot)
+- Structured Output with XML Tags
+- Role-Based Prompting
+- Prefilling Responses
+- Prompt Chaining
+- Context Management
+- Multimodal Prompting
+- Combining Techniques
+- Anti-Patterns to Avoid
+
+### docs/TROUBLESHOOTING.md — 340 lines
+- 8 Common Issues with Solutions
+- Debugging Workflow (5 steps)
+- Quick Reference Table
+- Testing Checklist (10 items)
+
+### examples/EXAMPLES.md — 315 lines
+- 10 Real-World Examples with Before/After
+- Templates and Frameworks
+- Optimization Checklists
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
