@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2025年北京高考 580-640分 理工科高校录取数据报告</title>
+<style>
+:root {
+  --bg: #0f1419;
+  --card-bg: #1a2332;
+  --card-border: #2d3f54;
+  --text: #e8edf3;
+  --text-muted: #8899aa;
+  --accent: #4fc3f7;
+  --accent2: #81c784;
+  --accent3: #ffb74d;
+  --red: #ef5350;
+  --highlight: #263545;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  padding: 2rem 1rem;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 1rem;
+}
+.student-info {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.student-info .item { display: flex; align-items: center; gap: 0.5rem; }
+.student-info .label { color: var(--text-muted); font-size: 0.85rem; }
+.student-info .value { font-weight: 600; color: var(--accent); }
+
+.summary-section {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+.summary-section h2 {
+  font-size: 1.2rem;
+  color: var(--accent);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.summary-section p {
+  color: var(--text);
+  font-size: 0.92rem;
+  margin-bottom: 0.6rem;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent2);
+  margin: 2.5rem 0 1rem;
+  padding-left: 0.8rem;
+  border-left: 4px solid var(--accent2);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+thead th {
+  background: #1e2d3d;
+  color: var(--accent);
+  padding: 0.8rem 0.6rem;
+  text-align: left;
+  white-space: nowrap;
+  font-weight: 600;
+  border-bottom: 2px solid var(--card-border);
+  position: sticky;
+  top: 0;
+}
+tbody td {
+  padding: 0.7rem 0.6rem;
+  border-bottom: 1px solid var(--card-border);
+  vertical-align: top;
+}
+tbody tr:hover { background: var(--highlight); }
+tbody tr:nth-child(even) { background: rgba(26, 35, 50, 0.5); }
+tbody tr:nth-child(even):hover { background: var(--highlight); }
+
+.school-name { font-weight: 600; color: var(--text); white-space: nowrap; }
+.tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+}
+.tag-985 { background: rgba(239, 83, 80, 0.2); color: var(--red); border: 1px solid rgba(239, 83, 80, 0.3); }
+.tag-211 { background: rgba(79, 195, 247, 0.15); color: var(--accent); border: 1px solid rgba(79, 195, 247, 0.3); }
+.tag-syl { background: rgba(129, 199, 132, 0.15); color: var(--accent2); border: 1px solid rgba(129, 199, 132, 0.3); }
+.tag-coop { background: rgba(255, 183, 77, 0.15); color: var(--accent3); border: 1px solid rgba(255, 183, 77, 0.3); }
+
+.score { font-weight: 700; color: var(--accent3); }
+.rank { color: var(--text-muted); font-size: 0.82rem; }
+.major-list { list-style: none; padding: 0; }
+.major-list li {
+  margin-bottom: 0.3rem;
+  padding-left: 0.8rem;
+  position: relative;
+  font-size: 0.85rem;
+}
+.major-list li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: var(--accent2);
+}
+.major-score { color: var(--accent3); font-size: 0.82rem; }
+
+.footnote {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+.footnote h3 { color: var(--text-muted); font-size: 1rem; margin-bottom: 0.8rem; }
+.footnote a { color: var(--accent); text-decoration: none; font-size: 0.85rem; word-break: break-all; }
+.footnote a:hover { text-decoration: underline; }
+.footnote li { margin-bottom: 0.4rem; }
+.footnote ul { list-style: decimal; padding-left: 1.5rem; }
+
+.category-label {
+  display: inline-block;
+  background: rgba(79, 195, 247, 0.1);
+  color: var(--accent);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  body { padding: 1rem 0.5rem; }
+  h1 { font-size: 1.4rem; }
+  table { font-size: 0.8rem; }
+  .student-info { flex-direction: column; gap: 0.5rem; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>2025年北京高考 580-640分 理工科高校录取数据报告</h1>
+<p class="subtitle">数据来源：北京教育考试院 2025年本科普通批录取投档线 | 报告生成时间：2026年4月29日</p>
+
+<div class="student-info">
+  <div class="item"><span class="label">目标考生</span><span class="value">北京2026届应届生</span></div>
+  <div class="item"><span class="label">选科组合</span><span class="value">物理 + 化学 + 生物</span></div>
+  <div class="item"><span class="label">参考成绩</span><span class="value">621.5分 (高一期末)</span></div>
+  <div class="item"><span class="label">意向方向</span><span class="value">工科 / 理科</span></div>
+  <div class="item"><span class="label">筛选范围</span><span class="value">580-640分投档线</span></div>
+</div>
+
+<!-- 概括总结 -->
+<div class="summary-section">
+  <h2>&#9670; 分数段概况总结</h2>
+  <p><strong>地理分布：</strong>该分数段高校以北京市属及教育部在京直属211高校为主体（约占70%），京外可选择的985高校集中于东北（东北大学、大连理工盘锦校区）、西北（兰州大学、西北农林科技大学）、中南（中南大学）及华东沿海（中国海洋大学）地区。</p>
+  <p><strong>学科类型：</strong>优势学科以电子信息类、材料科学类、能源动力类、交通运输类为主导。具体表现为——北京交通大学的交通运输工程、北京科技大学的材料冶金、华北电力大学的电气工程、北京化工大学的化学工程均为国内顶尖水平（学科评估A档及以上）。京外985高校则在冶金工程（中南大学A+）、自动化（东北大学A）、海洋科学（中国海洋大学A+）等领域具有不可替代的学科地位。</p>
+  <p><strong>位次对应：</strong>580-640分对应2025年北京市排名约4500-16500名。选科为物理+化学的考生可覆盖绝大多数理工类专业组。</p>
+</div>
+
+<!-- 第一部分：京内211高校 -->
+<h2 class="section-title">一、京内211/双一流高校（理工科专业组）</h2>
+
+<div class="table-wrapper">
+<table>
+<thead>
+<tr>
+  <th>高校名称</th>
+  <th>专业组 / 选科</th>
+  <th>投档线 / 位次</th>
+  <th>优势专业（工科/理科）</th>
+  <th>专业录取参考线</th>
+</tr>
+</thead>
+<tbody>
+<!-- 北京交通大学 -->
+<tr>
+  <td><span class="school-name">北京交通大学</span><span class="tag tag-211">211</span><span class="tag tag-syl">双一流</span></td>
+  <td>02组 物理+化学</td>
+  <td><span class="score">640</span><br><span class="rank">位次 4517</span></td>
+  <td>
+    <ul class="major-list">
+      <li>交通运输工程（A+）</li>
+      <li>计算机科学与技术（B+）</li>
+      <li>电子信息类（B+）</li>
+    </ul>
+  </td>
+  <td>
+    <span class="major-score">计算机类 640分</span><br>
+    <span class="major-score">电子信息类 640分</span><br>
+    <span class="major-score">交通运输类 640分</span>
+  </td>
+</tr>
+<tr>
+  <td><span class="school-name">北京交通大学</span><span class="tag tag-coop">中外合办</span></td>
+  <td>05组 物理+化学</td>
+  <td><span class="score">630</span><br><span class="rank">位次 6087</span></td>
+  <td>
+    <ul class="major-list">
+      <li>交通运输（中外合作）</li>
+      <li>机械电子工程（中外合作）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">组内统一投档线 630分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">北京交通大学</span><span class="tag tag-coop">中外合办</span></td>
+  <td>07组 物理+化学</td>
+  <td><span class="score">624</span><br><span class="rank">位次 7064</span></td>
+  <td>
+    <ul class="major-list">
+      <li>纳米材料与技术（中外合作）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">组内统一投档线 624分</span></td>
+</tr>
+
+<!-- 北京科技大学 -->
+<tr>
+  <td><span class="school-name">北京科技大学</span><span class="tag tag-211">211</span><span class="tag tag-syl">双一流</span></td>
+  <td>04组 物理+化学</td>
+  <td><span class="score">637</span><br><span class="rank">位次 4989</span></td>
+  <td>
+    <ul class="major-list">
+      <li>材料科学与工程（A+）</li>
+      <li>冶金工程（A+）</li>
+      <li>人工智能</li>
+    </ul>
+  </td>
+  <td>
+    <span class="major-score">工科试验班(卓越工程) 638分</span><br>
+    <span class="major-score">人工智能 637分</span><br>
+    <span class="major-score">材料智能技术 637分</span>
+  </td>
+</tr>
+<tr>
+  <td><span class="school-name">北京科技大学</span><span class="tag tag-211">211</span></td>
+  <td>05组 物理+化学</td>
+  <td><span class="score">634</span><br><span class="rank">位次 5441</span></td>
+  <td>
+    <ul class="major-list">
+      <li>计算机类（含计算机科学与技术、信息安全）</li>
+      <li>自动化类（含自动化、测控）</li>
+      <li>通信工程</li>
+    </ul>
+  </td>
+  <td>
+    <span class="major-score">计算机类 635分</span><br>
+    <span class="major-score">自动化类 634分</span><br>
+    <span class="major-score">材料科学与工程 634分</span>
+  </td>
+</tr>
+<tr>
+  <td><span class="school-name">北京科技大学</span><span class="tag tag-211">211</span></td>
+  <td>01组 不限</td>
+  <td><span class="score">626</span><br><span class="rank">位次 6740</span></td>
+  <td>
+    <ul class="major-list">
+      <li>经管类、社科类专业</li>
+    </ul>
+  </td>
+  <td><span class="major-score">组内统一投档线 626分</span></td>
+</tr>
+
+<!-- 北京邮电大学（中外合办部分） -->
+<tr>
+  <td><span class="school-name">北京邮电大学</span><span class="tag tag-211">211</span><span class="tag tag-syl">双一流</span><span class="tag tag-coop">中外合办</span></td>
+  <td>05组 物理+化学</td>
+  <td><span class="score">628</span><br><span class="rank">位次 6399</span></td>
+  <td>
+    <ul class="major-list">
+      <li>信息与通信工程（A+）</li>
+      <li>电子科学与技术（A-）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">中外合办组 投档线 628分</span><br><span class="rank">（普通组655分，超出筛选范围）</span></td>
+</tr>
+
+<!-- 华北电力大学 -->
+<tr>
+  <td><span class="school-name">华北电力大学</span><span class="tag tag-211">211</span><span class="tag tag-syl">双一流</span></td>
+  <td>03组 物理+化学</td>
+  <td><span class="score">623</span><br><span class="rank">位次 7249</span></td>
+  <td>
+    <ul class="major-list">
+      <li>电气工程及其自动化（A）</li>
+      <li>能源与动力工程（双一流学科）</li>
+      <li>智能电网信息工程</li>
+    </ul>
+  </td>
+  <td>
+    <span class="major-score">电气工程及其自动化 639分</span><br>
+    <span class="major-score">智能电网信息工程 635分</span><br>
+    <span class="major-score">能源与动力工程 629分</span><br>
+    <span class="major-score">人工智能 629分</span>
+  </td>
+</tr>
+<tr>
+  <td><span class="school-name">华北电力大学</span><span class="tag tag-211">211</span></td>
+  <td>01组 物理</td>
+  <td><span class="score">612</span><br><span class="rank">位次 9327</span></td>
+  <td>
+    <ul class="major-list">
+      <li>计算机科学与技术</li>
+      <li>自动化</li>
+      <li>储能科学与工程</li>
+    </ul>
+  </td>
+  <td>
+    <span class="major-score">计算机科学与技术 628分</span><br>
+    <span class="major-score">自动化 630分</span><br>
+    <span class="major-score">储能科学与工程 626分</span>
+  </td>
+</tr>
+
+<!-- 北京化工大学 -->
+<tr>
+  <td><span class="school-name">北京化工大学</span><span class="tag tag-211">211</span><span class="tag tag-syl">双一流</span></td>
+  <td>04组 物理+化学</td>
+  <td><span class="score">624</span><br><span class="rank">位次 7064</span></td>
+  <td>
+    <ul class="major-list">
+      <li>化学工程与技术（A+）</li>
+      <li>材料科学与工程（B+）</li>
+    </ul>
+  </td>
+  <td>
+    <span class="major-score">工科试验班(宏德书院/化工+高分子) 634分</span><br>
+    <span class="major-score">生物制造高精尖班 628分</span><br>
+    <span class="major-score">化工能源与生物医药 618分</span>
+  </td>
+</tr>
+<tr>
+  <td><span class="school-name">北京化工大学</span><span class="tag tag-211">211</span></td>
+  <td>02组 物理+化学</td>
+  <td><span class="score">618</span><br><span class="rank">位次 8158</span></td>
+  <td>
+    <ul class="major-list">
+      <li>先进材料方向</li>
+      <li>高端装备与智能制造</li>
+    </ul>
+  </td>
+  <td>
+    <span class="major-score">先进材料 618分</span><br>
+    <span class="major-score">高端装备与智能制造 616分</span>
+  </td>
+</tr>
+<tr>
+  <td><span class="school-name">北京化工大学</span><span class="tag tag-211">211</span></td>
+  <td>03组 物理+化学</td>
+  <td><span class="score">615</span><br><span class="rank">位次 8721</span></td>
+  <td>
+    <ul class="major-list">
+      <li>自动化类</li>
+      <li>理科试验班（数学、物理电子）</li>
+    </ul>
+  </td>
+  <td>
+    <span class="major-score">自动化类 617分</span><br>
+    <span class="major-score">理科试验班 615分</span>
+  </td>
+</tr>
+
+<!-- 北京工业大学 -->
+<tr>
+  <td><span class="school-name">北京工业大学</span><span class="tag tag-211">211</span><span class="tag tag-syl">双一流</span></td>
+  <td>03组 物理+化学</td>
+  <td><span class="score">622</span><br><span class="rank">位次 7440</span></td>
+  <td>
+    <ul class="major-list">
+      <li>土木工程（A）</li>
+      <li>环境科学与工程（A-）</li>
+      <li>材料科学与工程</li>
+    </ul>
+  </td>
+  <td><span class="major-score">03组王牌专业集中，投档线 622分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">北京工业大学</span><span class="tag tag-211">211</span></td>
+  <td>04组 物理+化学</td>
+  <td><span class="score">603</span><br><span class="rank">位次 11195</span></td>
+  <td>
+    <ul class="major-list">
+      <li>工科主流专业（机械、电气等）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">组内投档线 603分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">北京工业大学</span><span class="tag tag-211">211</span></td>
+  <td>05组 物理+化学</td>
+  <td><span class="score">592</span><br><span class="rank">位次 13650</span></td>
+  <td>
+    <ul class="major-list">
+      <li>工科专业（传统方向）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">组内投档线 592分</span></td>
+</tr>
+
+<!-- 中国石油大学（北京） -->
+<tr>
+  <td><span class="school-name">中国石油大学（北京）</span><span class="tag tag-211">211</span><span class="tag tag-syl">双一流</span></td>
+  <td>01组 不限</td>
+  <td><span class="score">616</span><br><span class="rank">位次 8526</span></td>
+  <td>
+    <ul class="major-list">
+      <li>石油与天然气工程（A+）</li>
+      <li>地质资源与地质工程（A+）</li>
+      <li>化学工程与技术（B+）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">01组投档线 616分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">中国石油大学（北京）</span><span class="tag tag-211">211</span></td>
+  <td>02组 物理 / 03组 物+化</td>
+  <td><span class="score">608 / 604</span><br><span class="rank">位次 10111 / 10979</span></td>
+  <td>
+    <ul class="major-list">
+      <li>石油工程、化学工程</li>
+      <li>地球物理学</li>
+    </ul>
+  </td>
+  <td><span class="major-score">02组 608分 / 03组 604分</span></td>
+</tr>
+
+<!-- 中国地质大学（北京） -->
+<tr>
+  <td><span class="school-name">中国地质大学（北京）</span><span class="tag tag-211">211</span><span class="tag tag-syl">双一流</span></td>
+  <td>01组 不限</td>
+  <td><span class="score">612</span><br><span class="rank">位次 9327</span></td>
+  <td>
+    <ul class="major-list">
+      <li>地质学（A+）</li>
+      <li>地质资源与地质工程（A+）</li>
+      <li>环境科学与工程</li>
+    </ul>
+  </td>
+  <td><span class="major-score">01组 612分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">中国地质大学（北京）</span><span class="tag tag-211">211</span></td>
+  <td>02组 物理 / 03组 物+化</td>
+  <td><span class="score">608 / 591</span><br><span class="rank">位次 10111 / 13897</span></td>
+  <td>
+    <ul class="major-list">
+      <li>资源勘查工程、宝石学</li>
+    </ul>
+  </td>
+  <td><span class="major-score">02组 608分 / 03组 591分</span></td>
+</tr>
+
+<!-- 中国矿业大学（北京） -->
+<tr>
+  <td><span class="school-name">中国矿业大学（北京）</span><span class="tag tag-211">211</span><span class="tag tag-syl">双一流</span></td>
+  <td>01组 不限</td>
+  <td><span class="score">605</span><br><span class="rank">位次 10753</span></td>
+  <td>
+    <ul class="major-list">
+      <li>矿业工程（A+）</li>
+      <li>安全科学与工程（A+）</li>
+      <li>测绘科学与技术</li>
+    </ul>
+  </td>
+  <td><span class="major-score">01组 605分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">中国矿业大学（北京）</span><span class="tag tag-211">211</span></td>
+  <td>02组 物理 / 03组 物+化</td>
+  <td><span class="score">598 / 596</span><br><span class="rank">位次 12318 / 12777</span></td>
+  <td>
+    <ul class="major-list">
+      <li>采矿工程、安全工程</li>
+    </ul>
+  </td>
+  <td><span class="major-score">02组 598分 / 03组 596分</span></td>
+</tr>
+
+<!-- 北京林业大学 -->
+<tr>
+  <td><span class="school-name">北京林业大学</span><span class="tag tag-211">211</span><span class="tag tag-syl">双一流</span></td>
+  <td>03组 物理 / 04组 生物</td>
+  <td><span class="score">614</span><br><span class="rank">位次 8923</span></td>
+  <td>
+    <ul class="major-list">
+      <li>林学（A+）</li>
+      <li>风景园林学（A+）</li>
+      <li>林业工程（B+）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">03/04组 614分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">北京林业大学</span><span class="tag tag-211">211</span></td>
+  <td>06/07组 物理+化学</td>
+  <td><span class="score">604</span><br><span class="rank">位次 10979</span></td>
+  <td>
+    <ul class="major-list">
+      <li>生物科学、食品科学与工程</li>
+    </ul>
+  </td>
+  <td><span class="major-score">06/07组 604分</span></td>
+</tr>
+
+<!-- 北京信息科技大学 -->
+<tr>
+  <td><span class="school-name">北京信息科技大学</span><span class="tag tag-syl">双非</span></td>
+  <td>03组 物理+化学</td>
+  <td><span class="score">587</span><br><span class="rank">位次 14810</span></td>
+  <td>
+    <ul class="major-list">
+      <li>计算机类（勤信实验班）</li>
+      <li>人工智能（勤信实验班）</li>
+      <li>电子信息工程</li>
+    </ul>
+  </td>
+  <td>
+    <span class="major-score">人工智能(勤信班) 610分</span><br>
+    <span class="major-score">计算机类(勤信班) 最高609分</span><br>
+    <span class="major-score">组内最低投档线 587分</span>
+  </td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<!-- 第二部分：京外985高校 -->
+<h2 class="section-title">二、京外985高校（580-640分区间可选理工科专业组）</h2>
+
+<div class="table-wrapper">
+<table>
+<thead>
+<tr>
+  <th>高校名称</th>
+  <th>专业组 / 选科</th>
+  <th>投档线 / 位次</th>
+  <th>优势专业（工科/理科）</th>
+  <th>专业录取参考线</th>
+</tr>
+</thead>
+<tbody>
+
+<!-- 东北大学 -->
+<tr>
+  <td><span class="school-name">东北大学</span><span class="tag tag-985">985</span><span class="tag tag-syl">双一流</span></td>
+  <td>03组 物理+化学</td>
+  <td><span class="score">636</span><br><span class="rank">位次 5139</span></td>
+  <td>
+    <ul class="major-list">
+      <li>控制科学与工程（A）</li>
+      <li>计算机科学与技术（A）</li>
+      <li>冶金工程（A）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">03组(物化)投档线 636分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">东北大学</span><span class="tag tag-985">985</span></td>
+  <td>02组 物理</td>
+  <td><span class="score">622</span><br><span class="rank">位次 7440</span></td>
+  <td>
+    <ul class="major-list">
+      <li>软件工程（A）</li>
+      <li>机械工程（B+）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">02组(物理)投档线 622分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">东北大学</span><span class="tag tag-985">985</span></td>
+  <td>01组 不限</td>
+  <td><span class="score">617</span><br><span class="rank">位次 8325</span></td>
+  <td>
+    <ul class="major-list">
+      <li>经管、文法类专业</li>
+    </ul>
+  </td>
+  <td><span class="major-score">01组投档线 617分</span></td>
+</tr>
+
+<!-- 兰州大学 -->
+<tr>
+  <td><span class="school-name">兰州大学</span><span class="tag tag-985">985</span><span class="tag tag-syl">双一流</span></td>
+  <td>02/03组 物理+化学</td>
+  <td><span class="score">622</span><br><span class="rank">位次 7440</span></td>
+  <td>
+    <ul class="major-list">
+      <li>化学（A）</li>
+      <li>生态学（A）</li>
+      <li>物理学（B+）</li>
+      <li>草学（A+）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">02/03组投档线 622分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">兰州大学</span><span class="tag tag-985">985</span></td>
+  <td>01组 不限</td>
+  <td><span class="score">618</span><br><span class="rank">位次 8158</span></td>
+  <td>
+    <ul class="major-list">
+      <li>经济学类、工商管理类</li>
+    </ul>
+  </td>
+  <td><span class="major-score">01组投档线 618分</span></td>
+</tr>
+
+<!-- 中南大学 -->
+<tr>
+  <td><span class="school-name">中南大学</span><span class="tag tag-985">985</span><span class="tag tag-syl">双一流</span></td>
+  <td>03组</td>
+  <td><span class="score">622</span><br><span class="rank">位次 7440</span></td>
+  <td>
+    <ul class="major-list">
+      <li>冶金工程（A+）</li>
+      <li>矿业工程（A+）</li>
+      <li>材料科学与工程（A）</li>
+      <li>机械工程（A-）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">03组投档线 622分</span></td>
+</tr>
+
+<!-- 中国海洋大学 -->
+<tr>
+  <td><span class="school-name">中国海洋大学</span><span class="tag tag-985">985</span><span class="tag tag-syl">双一流</span></td>
+  <td>01组 不限</td>
+  <td><span class="score">622</span><br><span class="rank">位次 7440</span></td>
+  <td>
+    <ul class="major-list">
+      <li>海洋科学（A+）</li>
+      <li>水产（A+）</li>
+      <li>环境科学与工程（B+）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">01组投档线 622分</span></td>
+</tr>
+
+<!-- 哈尔滨工业大学（中外合办） -->
+<tr>
+  <td><span class="school-name">哈尔滨工业大学</span><span class="tag tag-985">985</span><span class="tag tag-syl">双一流</span><span class="tag tag-coop">中外合办</span></td>
+  <td>04组 物理+化学（中外合办）</td>
+  <td><span class="score">623</span><br><span class="rank">位次 7249</span></td>
+  <td>
+    <ul class="major-list">
+      <li>机械工程（A+）</li>
+      <li>控制科学与工程（A+）</li>
+      <li>环境科学与工程（A+）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">04组(中外合办)投档线 623分</span><br><span class="rank">（普通组远超640分）</span></td>
+</tr>
+
+<!-- 大连理工大学（盘锦校区） -->
+<tr>
+  <td><span class="school-name">大连理工大学（盘锦校区）</span><span class="tag tag-985">985</span></td>
+  <td>01组 / 02组</td>
+  <td><span class="score">615-623</span><br><span class="rank">位次 7249-8721</span></td>
+  <td>
+    <ul class="major-list">
+      <li>化学工程与技术（A）</li>
+      <li>海洋技术</li>
+      <li>精细化工</li>
+    </ul>
+  </td>
+  <td><span class="major-score">02组 623分 / 01组 615分</span></td>
+</tr>
+
+<!-- 四川大学 -->
+<tr>
+  <td><span class="school-name">四川大学</span><span class="tag tag-985">985</span><span class="tag tag-syl">双一流</span></td>
+  <td>02组</td>
+  <td><span class="score">618</span><br><span class="rank">位次 8158</span></td>
+  <td>
+    <ul class="major-list">
+      <li>数学（B+）</li>
+      <li>化学（A-）</li>
+      <li>材料科学与工程（A-）</li>
+      <li>生物医学工程（A-）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">02组投档线 618分</span></td>
+</tr>
+
+<!-- 武汉大学（中外合办） -->
+<tr>
+  <td><span class="school-name">武汉大学</span><span class="tag tag-985">985</span><span class="tag tag-syl">双一流</span><span class="tag tag-coop">中外合办</span></td>
+  <td>04组（中外合办）</td>
+  <td><span class="score">618</span><br><span class="rank">位次 8158</span></td>
+  <td>
+    <ul class="major-list">
+      <li>测绘科学与技术（A+）</li>
+      <li>地球物理学（A+）</li>
+      <li>水利工程（A）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">04组(中外合办)投档线 618分</span><br><span class="rank">（普通组远超640分）</span></td>
+</tr>
+
+<!-- 西北农林科技大学 -->
+<tr>
+  <td><span class="school-name">西北农林科技大学</span><span class="tag tag-985">985</span><span class="tag tag-syl">双一流</span></td>
+  <td>03/04组</td>
+  <td><span class="score">604-617</span><br><span class="rank">位次 8325-10979</span></td>
+  <td>
+    <ul class="major-list">
+      <li>农学（A-）</li>
+      <li>林学（A-）</li>
+      <li>水土保持与荒漠化防治</li>
+      <li>食品科学与工程（B+）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">04组 617分 / 03组 604分</span></td>
+</tr>
+
+<!-- 东北大学秦皇岛分校 -->
+<tr>
+  <td><span class="school-name">东北大学秦皇岛分校</span><span class="tag tag-985">985</span></td>
+  <td>02/04组</td>
+  <td><span class="score">615-616</span><br><span class="rank">位次 8526-8721</span></td>
+  <td>
+    <ul class="major-list">
+      <li>计算机科学与技术</li>
+      <li>通信工程</li>
+      <li>自动化</li>
+    </ul>
+  </td>
+  <td><span class="major-score">02组 615分 / 04组(中外) 616分</span></td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<!-- 第三部分：中国农业大学（跨界入选）  -->
+<h2 class="section-title">三、补充：中国农业大学（京内985，部分组进入区间）</h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr>
+  <th>高校名称</th>
+  <th>专业组 / 选科</th>
+  <th>投档线 / 位次</th>
+  <th>优势专业（工科/理科）</th>
+  <th>专业录取参考线</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><span class="school-name">中国农业大学</span><span class="tag tag-985">985</span><span class="tag tag-syl">双一流</span></td>
+  <td>03组 物理+化学</td>
+  <td><span class="score">638</span><br><span class="rank">位次 4834</span></td>
+  <td>
+    <ul class="major-list">
+      <li>农业工程（A+）</li>
+      <li>食品科学与工程（A+）</li>
+      <li>生物学（A）</li>
+    </ul>
+  </td>
+  <td><span class="major-score">03组投档线 638分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">中国农业大学</span><span class="tag tag-985">985</span></td>
+  <td>01/02组</td>
+  <td><span class="score">636</span><br><span class="rank">位次 5139</span></td>
+  <td>
+    <ul class="major-list">
+      <li>生物工程、车辆工程</li>
+      <li>电气工程及其自动化</li>
+    </ul>
+  </td>
+  <td><span class="major-score">01/02组 636分</span></td>
+</tr>
+<tr>
+  <td><span class="school-name">中国农业大学</span><span class="tag tag-985">985</span><span class="tag tag-coop">中外合办</span></td>
+  <td>04组 不限（中外合办）</td>
+  <td><span class="score">609</span><br><span class="rank">位次 9914</span></td>
+  <td>
+    <ul class="major-list">
+      <li>中外合作办学专业</li>
+    </ul>
+  </td>
+  <td><span class="major-score">04组(中外合办) 609分</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- 数据来源 -->
+<div class="footnote">
+  <h3>数据来源与参考链接</h3>
+  <ul>
+    <li><a href="https://www.bjeea.cn/uploads/soft/250720/178-250H0201058.pdf" target="_blank">北京教育考试院：2025年北京市高招本科普通批录取投档线（官方PDF）</a></li>
+    <li><a href="https://www.gaokzx.com/gk/zhiyuan/146894.html" target="_blank">北京高考在线：北京科技大学2025年在京专业录取分数线</a></li>
+    <li><a href="https://www.gaokzx.com/gk/zhiyuan/154495.html" target="_blank">北京高考在线：北京交通大学2025年在京专业录取分数线</a></li>
+    <li><a href="https://goto.ncepu.edu.cn/bkzn/wnfs/5550481019754635ae9254fed48c73c4.htm" target="_blank">华北电力大学本科招生信息网：北京2023-2025年录取分数统计</a></li>
+    <li><a href="https://goto.buct.edu.cn/static/mobile/front/buct/basic/html_web/lnfs.html" target="_blank">北京化工大学本科招生网：历年分数</a></li>
+    <li><a href="https://www.gaokzx.com/gk/zhiyuan/152831.html" target="_blank">北京高考在线：兰州大学2025年在京专业录取分数线</a></li>
+    <li><a href="https://www.zizzs.com/gk/gaokao/215056.html" target="_blank">自主选拔在线：北京考生2026年高考多少分能上985高校</a></li>
+    <li><a href="https://www.gk100.com/read_932917127048.htm" target="_blank">GK100：北京所有理工类大学录取分数线排名（2025数据）</a></li>
+    <li><a href="https://www.gaosan.com/gaokao/1791087.html" target="_blank">高三网：2025北京公办本科大学录取分数线及位次</a></li>
+    <li><a href="http://gaokzx.com/gk/zhiyuan/146965.html" target="_blank">北京高考在线：东北大学近2年在京本科普通批投档录取分数变化分析</a></li>
+  </ul>
+  <p style="margin-top:1rem; color: var(--text-muted); font-size:0.82rem;">
+    注：① 以上数据均基于2025年北京教育考试院发布的正式投档数据。② 专业录取分数线来自各高校招生网官方公布或北京高考在线等权威第三方整理。③ 标注"中外合办"的专业组学费通常高于普通专业组，具体参照各校招生章程。④ 学科评估等级参照教育部第四/五轮学科评估结果。
+  </p>
+</div>
+
+</div>
+</body>
+</html>
